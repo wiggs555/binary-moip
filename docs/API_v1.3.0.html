@@ -1,0 +1,5219 @@
+Source URL: https://help.snapone.com/moip-ig/Content/Binary%20MoIP%20Topics/API%20v1.3.0.html#section/API
+Title: MoIP Controller API
+
+* API  
+   * Introduction  
+   * Authentication  
+   * ID Values  
+   * Groups  
+   * Updates
+* Base Resources  
+   * Actions  
+         * postPerform factory reset.  
+         * putPerform firmware upgrade.  
+         * postPerform device reboot.  
+   * Authentication  
+         * putUpdate authentication credentials.  
+         * getGet JWT for API access using digest.  
+         * postGet JWT for API access using post.  
+   * Configuration  
+         * getGet base level device information.  
+         * putUpdate base level device information.  
+         * getGet device configuration.  
+         * putUpdate device configuration.  
+         * getGet LAN settings.  
+         * putUpdate LAN settings.  
+   * Information  
+         * getGet current firmware information.  
+         * getGet hardware information.  
+         * getGet hardware statistical information.  
+         * getGet time information.
+* MoIP Resources  
+   * System  
+         * getGet global settings.  
+         * putUpdate global settings.  
+         * postPerform global actions.  
+         * getGet general system status summary.  
+   * Eventing  
+         * getGet raw change event socket information.  
+         * getChange event WebSocket.  
+   * Units  
+         * getGet all units.  
+         * getGet unit status and settings.  
+         * putUpdate unit settings.  
+         * delRemove unit from system.  
+         * postPerform actions on a unit.  
+         * getGet unit statistics.  
+         * getGet unit log.  
+         * delClear unit log.  
+   * Endpoints  
+         * getGet audio RX status and settings.  
+         * putUpdate audio RX settings.  
+         * postPerform actions on audio RX component.  
+         * getGet audio channel settings.  
+         * putUpdate audio channel settings.  
+         * getGet all biquads for audio channel.  
+         * getGet biquad for audio channel.  
+         * putUpdate biquad for audio channel.  
+         * getGet biquad for main audio channels.  
+         * putUpdate biquad for main audio channels.  
+         * getGet biquad for sub audio channels.  
+         * putUpdate biquad for sub audio channels.  
+         * getGet audio TX status and settings.  
+         * putUpdate audio TX settings.  
+         * getGet video RX status and settings.  
+         * putUpdate video RX settings.  
+         * postPerform actions on video RX component.  
+         * getGet video EDID data.  
+         * getGet video TX status and settings.  
+         * putUpdate video TX settings.  
+         * getGet preview image.  
+         * getGet video EDID data.  
+         * getGet IR RX status and settings.  
+         * putUpdate IR RX settings.  
+         * postPerform actions on IR RX component.  
+         * getGet IR TX status and settings.  
+         * putUpdate IR TX settings.  
+         * getGet USB RX status and settings.  
+         * putUpdate USB RX settings.  
+         * getGet USB TX status and settings.  
+         * putUpdate USB TX settings.  
+         * getGet serial RX status and settings.  
+         * putUpdate serial RX settings.  
+         * postPerform actions on serial component.  
+         * getGet next serial message.  
+         * delClear next serial message.  
+         * getGet serial TX status and settings.  
+         * putUpdate serial TX settings.  
+         * postPerform actions on serial component.  
+         * getGet next serial message.  
+         * delClear next serial message.  
+         * get/api/v1/moip/group\_rx  
+         * getGet group RX status and settings.  
+         * putUpdate group RX settings.  
+         * get/api/v1/moip/group\_tx  
+         * getGet group TX status and settings.  
+         * putUpdate group TX settings.  
+   * Video Walls  
+         * getGet all video walls.  
+         * postCreate a new video wall.  
+         * getGet video wall status and settings.  
+         * putUpdate video wall settings.  
+         * delRemove video wall from system.  
+   * Multiview Layouts  
+         * getGet layout window information.
+
+API docs by Redocly
+
+# MoIP Controller API (1.3.0)
+
+Download OpenAPI specification:Download
+
+# API
+
+## Introduction
+
+The REST API for interacting with MoIP Controllers. This API contains the MoIP specific functionallity as well as the more generic device functionallity shared with other devices.
+
+## Authentication
+
+This API, and any other device specific APIs, will require obtaining a JSON Web Token(JWT) using the Digest Login or Post Login endpoints prior to use. JWTs are used since different parts of the API, and the different APIs, may be handled by separate services internally.
+
+## ID Values
+
+The component IDs are used to reference components from other components, ie. pairing, video wall membership, etc. They are also intended to be used as external references and, as such, won't change for the life of the component. If a unit is deleted and it's rediscovered then it will get new IDs but would count as a 'new' unit from the standpoint of the Controller. The IDs are also unique across the entire Controller and not just to the given component type.
+
+## Groups
+
+The 'group\_rx's and 'group\_tx's are the intended logical grouping of the audio, video, serial, IR, and USB components to make up an RX or TX. While this is the intended grouping, the individual components can be paired differently if this is desired. For example, watching video from one TX while listening to a different TX.
+
+## Updates
+
+While the API can be used in a purely synchronous fashion, status changes, and more importantly serial messages, can be handled without polling by using the event websocket to get asynchronous notifications of changes.
+
+# Actions
+
+Path endpoints for device actions.
+
+## Perform factory reset. 
+
+Resets device to factory defaults
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_
+
+##### Request Body schema: application/json
+
+optional
+
+Perform factory default
+
+object (ConfigResetRequestObject) 
+
+### Responses
+
+**200** 
+
+Successful response
+
+**400** 
+
+Bad Request
+
+post/api/v1/base/config/reset
+
+http://localhost/api/v1/base/config/reset
+
+### Request samples 
+
+* Payload
+
+Content type
+
+application/json
+
+Copy
+
+`{ }`
+
+### Response samples 
+
+* 200
+* 400
+
+Content type
+
+application/json
+
+Copy
+
+ Expand all  Collapse all 
+
+`{
+* "success": {  
+   * "code": 0,  
+   * "message": "Factory default successful! Rebooting..."  
+}
+}`
+
+## Perform firmware upgrade. 
+
+Validates and upgrades firmware
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_
+
+##### Request Body schema: application/json
+
+required
+
+Set request
+
+| url | string Upgrade url string |
+| --- | ------------------------- |
+
+### Responses
+
+**200** 
+
+Successful response
+
+**400** 
+
+Bad Request
+
+put/api/v1/base/firmware
+
+http://localhost/api/v1/base/firmware
+
+### Request samples 
+
+* Payload
+
+Content type
+
+application/json
+
+Copy
+
+`{
+* "url": "<http://s3.amazonaws.com/ovrc-firmware/firmware.bin>"
+}`
+
+### Response samples 
+
+* 200
+* 400
+
+Content type
+
+application/json
+
+Copy
+
+ Expand all  Collapse all 
+
+`{
+* "success": {  
+   * "code": 0,  
+   * "message": "Factory default successful! Rebooting..."  
+}
+}`
+
+## Perform device reboot. 
+
+Reboots device
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_
+
+##### Request Body schema: application/json
+
+optional
+
+Set request
+
+| delay | number Delay in seconds |
+| ----- | ----------------------- |
+
+### Responses
+
+**200** 
+
+Successful response
+
+**400** 
+
+Bad Request
+
+post/api/v1/base/hwcon/reboot
+
+http://localhost/api/v1/base/hwcon/reboot
+
+### Request samples 
+
+* Payload
+
+Content type
+
+application/json
+
+Copy
+
+`{
+* "delay": 5
+}`
+
+### Response samples 
+
+* 200
+* 400
+
+Content type
+
+application/json
+
+Copy
+
+ Expand all  Collapse all 
+
+`{
+* "success": {  
+   * "code": 0,  
+   * "message": "Factory default successful! Rebooting..."  
+}
+}`
+
+# Authentication
+
+Path endpoints for authentication items.
+
+## Update authentication credentials. 
+
+Set user authentication credentials.
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_
+
+##### Request Body schema: application/json
+
+required
+
+Set request
+
+| username | string |
+| -------- | ------ |
+| password | string |
+
+### Responses
+
+**200** 
+
+Successful response
+
+**400** 
+
+Bad Request
+
+put/api/v1/base/auth/credentials
+
+http://localhost/api/v1/base/auth/credentials
+
+### Request samples 
+
+* Payload
+
+Content type
+
+application/json
+
+Copy
+
+`{
+* "username": "admin",
+* "password": "SuperSekret"
+}`
+
+### Response samples 
+
+* 200
+* 400
+
+Content type
+
+application/json
+
+Copy
+
+ Expand all  Collapse all 
+
+`{
+* "success": {  
+   * "code": 0,  
+   * "message": "Factory default successful! Rebooting..."  
+}
+}`
+
+## Get JWT for API access using digest. 
+
+This endpoint uses HTTP Digest for authentication.
+
+##### Authorizations:
+
+_DigestAuth_
+
+### Responses
+
+**200** 
+
+Successful response
+
+**400** 
+
+Bad Request
+
+get/api/v1/base/auth/login
+
+http://localhost/api/v1/base/auth/login
+
+### Response samples 
+
+* 200
+* 400
+
+Content type
+
+application/json
+
+Copy
+
+`{
+* "accessToken": "eyJhbGciOiJIUzI1NiIsICJ0eXAiOiJKV1QifQ.eyJsZXZlbCI6ImFkbWluIn0.S7mDi9GCpsKBIrJZlwIPeZKIIm96KJFp4kt2YFXJeQk",
+* "tokenType": "Bearer",
+* "expiresIn": 3600
+}`
+
+## Get JWT for API access using post. 
+
+Since the password is sent in the clear for this request, it really should only be used if HTTPS is being used.
+
+##### Request Body schema: application/json
+
+required
+
+Set request
+
+| username | string |
+| -------- | ------ |
+| password | string |
+
+### Responses
+
+**200** 
+
+Successful response
+
+**400** 
+
+Bad Request
+
+post/api/v1/base/auth/login
+
+http://localhost/api/v1/base/auth/login
+
+### Request samples 
+
+* Payload
+
+Content type
+
+application/json
+
+Copy
+
+`{
+* "username": "admin",
+* "password": "SuperSekret"
+}`
+
+### Response samples 
+
+* 200
+* 400
+
+Content type
+
+application/json
+
+Copy
+
+`{
+* "accessToken": "eyJhbGciOiJIUzI1NiIsICJ0eXAiOiJKV1QifQ.eyJsZXZlbCI6ImFkbWluIn0.S7mDi9GCpsKBIrJZlwIPeZKIIm96KJFp4kt2YFXJeQk",
+* "tokenType": "Bearer",
+* "expiresIn": 3600
+}`
+
+# Configuration
+
+Path endpoints for configuration items.
+
+## Get base level device information. 
+
+Returns base level device information.
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_
+
+### Responses
+
+**200** 
+
+Successful response
+
+**400** 
+
+Bad Request
+
+get/api/v1/base
+
+http://localhost/api/v1/base
+
+### Response samples 
+
+* 200
+* 400
+
+Content type
+
+application/json
+
+Copy
+
+`{
+* "mac": "D4:6A:91:FF:FF:FF",
+* "service_tag": "ST11111111111111",
+* "model": "OVRC-100-HUB",
+* "version": "1.0.0.0",
+* "name": "Office Hub"
+}`
+
+## Update base level device information. 
+
+Sets base device level information
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_
+
+##### Request Body schema: application/json
+
+required
+
+Set request
+
+| name | string A-z, 0-9, -, and ., but can not start with - or . |
+| ---- | -------------------------------------------------------- |
+
+### Responses
+
+**200** 
+
+Successful response
+
+**400** 
+
+Bad Request
+
+put/api/v1/base
+
+http://localhost/api/v1/base
+
+### Request samples 
+
+* Payload
+
+Content type
+
+application/json
+
+Copy
+
+`{
+* "name": "Office Hub"
+}`
+
+### Response samples 
+
+* 200
+* 400
+
+Content type
+
+application/json
+
+Copy
+
+ Expand all  Collapse all 
+
+`{
+* "success": {  
+   * "code": 0,  
+   * "message": "Factory default successful! Rebooting..."  
+}
+}`
+
+## Get device configuration. 
+
+Get the current device configuration
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_
+
+### Responses
+
+**200** 
+
+Successful response
+
+**400** 
+
+Bad Request
+
+get/api/v1/base/config
+
+http://localhost/api/v1/base/config
+
+### Response samples 
+
+* 400
+
+Content type
+
+application/json
+
+Copy
+
+ Expand all  Collapse all 
+
+`{
+* "error": {  
+   * "code": 3,  
+   * "message": "Failed to get data. Error [DEVICE BAD STATE]"  
+}
+}`
+
+## Update device configuration. 
+
+Upload and apply the device configuration
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_
+
+##### Request Body schema: text/plain
+
+string
+
+### Responses
+
+**200** 
+
+Successful response
+
+**400** 
+
+Bad Request
+
+put/api/v1/base/config
+
+http://localhost/api/v1/base/config
+
+### Response samples 
+
+* 200
+* 400
+
+Content type
+
+application/json
+
+Copy
+
+ Expand all  Collapse all 
+
+`{
+* "success": {  
+   * "code": 0,  
+   * "message": "Factory default successful! Rebooting..."  
+}
+}`
+
+## Get LAN settings. 
+
+Returns lan information
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_
+
+### Responses
+
+**200** 
+
+Successful response
+
+**400** 
+
+Bad Request
+
+get/api/v1/base/lan
+
+http://localhost/api/v1/base/lan
+
+### Response samples 
+
+* 200
+* 400
+
+Content type
+
+application/json
+
+Copy
+
+`{
+* "deviceName": "Office Hub",
+* "macAddress": "FF:FF:FF:FF:FF:FF",
+* "dhcpEnabled": true,
+* "deviceIpAddress": "192.168.1.100",
+* "deviceSubnetMask": "255.255.252.0",
+* "deviceDefaultGateway": "192.168.24.1",
+* "staticdns": true,
+* "dnsServer1": "8.8.8.8",
+* "dnsServer2": "8.8.8.8"
+}`
+
+## Update LAN settings. 
+
+Sets lan information
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_
+
+##### Request Body schema: application/json
+
+required
+
+Set request
+
+| deviceName           | string  |
+| -------------------- | ------- |
+| macAddress           | string  |
+| dhcpEnabled          | boolean |
+| deviceIpAddress      | string  |
+| deviceSubnetMask     | string  |
+| deviceDefaultGateway | string  |
+| staticdns            | boolean |
+| dnsServer1           | string  |
+| dnsServer2           | string  |
+
+### Responses
+
+**200** 
+
+Successful response
+
+**400** 
+
+Bad Request
+
+put/api/v1/base/lan
+
+http://localhost/api/v1/base/lan
+
+### Request samples 
+
+* Payload
+
+Content type
+
+application/json
+
+Copy
+
+`{
+* "deviceName": "Office Hub",
+* "macAddress": "FF:FF:FF:FF:FF:FF",
+* "dhcpEnabled": true,
+* "deviceIpAddress": "192.168.1.100",
+* "deviceSubnetMask": "255.255.252.0",
+* "deviceDefaultGateway": "192.168.24.1",
+* "staticdns": true,
+* "dnsServer1": "8.8.8.8",
+* "dnsServer2": "8.8.8.8"
+}`
+
+### Response samples 
+
+* 200
+* 400
+
+Content type
+
+application/json
+
+Copy
+
+ Expand all  Collapse all 
+
+`{
+* "success": {  
+   * "code": 0,  
+   * "message": "Factory default successful! Rebooting..."  
+}
+}`
+
+# Information
+
+Path endpoints for information items.
+
+## Get current firmware information. 
+
+Returns firmware information
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_
+
+### Responses
+
+**200** 
+
+Successful response
+
+**400** 
+
+Bad Request
+
+get/api/v1/base/firmware
+
+http://localhost/api/v1/base/firmware
+
+### Response samples 
+
+* 200
+* 400
+
+Content type
+
+application/json
+
+Copy
+
+`{
+* "version": "1.0.0.0",
+* "buildDate": "2021-3-1",
+* "buildNumber": "1",
+* "applyDate": "2021-3-3",
+* "imageName": "firmware.bin",
+* "size": 4509751
+}`
+
+## Get hardware information. 
+
+Returns hardware information
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_
+
+### Responses
+
+**200** 
+
+Successful response
+
+**400** 
+
+Bad Request
+
+get/api/v1/base/info
+
+http://localhost/api/v1/base/info
+
+### Response samples 
+
+* 200
+* 400
+
+Content type
+
+application/json
+
+Copy
+
+`{
+* "serial": "12345678",
+* "service_tag": "ST11111111111111",
+* "model": "OVRC-100-HUB",
+* "platform": "FAKE"
+}`
+
+## Get hardware statistical information. 
+
+Returns hardware statistical information
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_
+
+### Responses
+
+**200** 
+
+Successful response
+
+**400** 
+
+Bad Request
+
+get/api/v1/base/stats
+
+http://localhost/api/v1/base/stats
+
+### Response samples 
+
+* 200
+* 400
+
+Content type
+
+application/json
+
+Copy
+
+`{
+* "uptime": 30,
+* "memFree": 100,
+* "memTotal": 200,
+* "cpu": 20
+}`
+
+## Get time information. 
+
+Returns time information
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_
+
+### Responses
+
+**200** 
+
+Successful response
+
+**400** 
+
+Bad Request
+
+get/api/v1/base/time
+
+http://localhost/api/v1/base/time
+
+### Response samples 
+
+* 200
+* 400
+
+Content type
+
+application/json
+
+Copy
+
+ Expand all  Collapse all 
+
+`{
+* "time": 1614791480,
+* "timezone": {  
+   * "offset": -5  
+},
+* "dst": {  
+   * "enabled": true,  
+   * "start": {  
+         * "month": 0,  
+         * "day": 0,  
+         * "sequence": 0,  
+         * "time": 0  
+   },  
+   * "end": {  
+         * "month": 0,  
+         * "day": 0,  
+         * "sequence": 0,  
+         * "time": 0  
+   }  
+}
+}`
+
+# System
+
+Path endpoints for core MoIP system items.
+
+## Get global settings. 
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+### Responses
+
+**200** 
+
+A System object response.
+
+get/api/v1/moip/system
+
+http://localhost/api/v1/moip/system
+
+### Response samples 
+
+* 200
+
+Content type
+
+application/json
+
+Copy
+
+ Expand all  Collapse all 
+
+`{
+* "name": "string",
+* "kind": "v1v2",
+* "diag_mode": "idle",
+* "supported_diag_mode": [  
+   * "idle"  
+],
+* "legacy_api": true
+}`
+
+## Update global settings. 
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+##### Request Body schema: application/json
+
+A System object update request.
+
+| name        | string                                                                                                                                                                                                                                                                          |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| diag\_mode  | string (DiagType) Enum: "idle" "identify" "cycle" Run a diagnostic mode on the system. 'identify' displays the RX info and TX pairing info on each video RX. 'cycle' does the same information display as 'identify' but also cycles pairing of all RXs to TXs every 5 seconds. |
+| legacy\_api | boolean Controls whether the legacy TCP control API is enabled or not.                                                                                                                                                                                                          |
+
+### Responses
+
+**204** 
+
+System updated
+
+**400** 
+
+Update failed
+
+put/api/v1/moip/system
+
+http://localhost/api/v1/moip/system
+
+### Request samples 
+
+* Payload
+
+Content type
+
+application/json
+
+Copy
+
+`{
+* "name": "string",
+* "diag_mode": "idle",
+* "legacy_api": true
+}`
+
+### Response samples 
+
+* 400
+
+Content type
+
+application/json
+
+Copy
+
+`{
+* "field": "string",
+* "message": "string"
+}`
+
+## Perform global actions. 
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+##### Request Body schema: application/json
+
+A System Action request.
+
+| action | string Value: "reboot\_all\_units" Actions supported: reboot\_all\_units : Reboots every connected unit. |
+| ------ | -------------------------------------------------------------------------------------------------------- |
+
+### Responses
+
+**204** 
+
+System action performed
+
+post/api/v1/moip/system
+
+http://localhost/api/v1/moip/system
+
+### Request samples 
+
+* Payload
+
+Content type
+
+application/json
+
+Copy
+
+`{
+* "action": "reboot_all_units"
+}`
+
+## Get general system status summary. 
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+### Responses
+
+**200** 
+
+A SystemStatus object response.
+
+get/api/v1/moip/system/status
+
+http://localhost/api/v1/moip/system/status
+
+### Response samples 
+
+* 200
+
+Content type
+
+application/json
+
+Copy
+
+ Expand all  Collapse all 
+
+`{
+* "units": [  
+   * {  
+         * "name": "string",  
+         * "unit_state": "unconnected",  
+         * "upgrade_state": {  
+                  * "percent": 0,  
+                  * "stage": "transferring"  
+         },  
+         * "mac": "string",  
+         * "model": "string",  
+         * "version": "string",  
+         * "ip": "string",  
+         * "stats": {  
+                  * "cpu_usage": -1,  
+                  * "mem_usage": -1,  
+                  * "failed_connections": 0,  
+                  * "reboots": 0,  
+                  * "temp": [  
+                              * 0  
+                  ]  
+         }  
+   }  
+]
+}`
+
+# Eventing
+
+Path endpoints, and pseudo path endpoints, for reporting change events.
+
+## Get raw change event socket information. 
+
+This describes a raw socket that sends changes. The websocket is the preferred solution but this may be used as a fallback. This socket works just like the change endpoints just in a simpler form, text over a raw socket. Any data sent on this socket will be dropped. Change events are '\\r\\n' deliminated lines in the form of \[ADD | MOD | DEL\] \[path change\] or PNG -. ex. MOD /api/v1/moip/unit/1022
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+### Responses
+
+**200** 
+
+A RawConnection object response.
+
+get/api/v1/moip/raw\_change
+
+http://localhost/api/v1/moip/raw\_change
+
+### Response samples 
+
+* 200
+
+Content type
+
+application/json
+
+Copy
+
+`{
+* "address": "string",
+* "port": 0
+}`
+
+## Change event WebSocket. 
+
+WEBSOCKET: This is only a placeholder since OpenAPI doesn't describe websockets natively. The JSON response schema does describe the message format received on the websocket. While the websocket protocol field isn't normally used, any value can be given, it can used to supply the JWT for authorization since browsers restrict access to the request headers. Using a protocol of the form 'Bearer.{JWT}', and replacing {JWT} with the token, can 'smuggle' it in.
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+### Responses
+
+**200** 
+
+A Changes object response.
+
+get/api/v1/moip/change
+
+http://localhost/api/v1/moip/change
+
+### Response samples 
+
+* 200
+
+Content type
+
+application/json
+
+Copy
+
+ Expand all  Collapse all 
+
+`{
+* "changes": [  
+   * {  
+         * "url": "/api/v1/moip/video_rx/1052",  
+         * "kind": "modified"  
+   }  
+]
+}`
+
+# Units
+
+Path endpoints for MoIP units.
+
+## Get all units. 
+
+Get a list of all unit IDs in the system.
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+### Responses
+
+**200** 
+
+List of Units
+
+get/api/v1/moip/unit
+
+http://localhost/api/v1/moip/unit
+
+### Response samples 
+
+* 200
+
+Content type
+
+application/json
+
+Copy
+
+ Expand all  Collapse all 
+
+`{
+* "items": [  
+   * 0  
+]
+}`
+
+## Get unit status and settings. 
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+##### path Parameters
+
+| idrequired | integer <int32\>  (Id) Component ID |
+| ---------- | ----------------------------------- |
+
+##### query Parameters
+
+| supported | integer <int32\> A zero value removes 'supported' fields, any other value, or no parameter, leaves them in. |
+| --------- | ----------------------------------------------------------------------------------------------------------- |
+
+### Responses
+
+**200** 
+
+A Unit object response.
+
+**404** 
+
+Unknown Unit
+
+get/api/v1/moip/unit/{id}
+
+http://localhost/api/v1/moip/unit/{id}
+
+### Response samples 
+
+* 200
+
+Content type
+
+application/json
+
+Copy
+
+ Expand all  Collapse all 
+
+`{
+* "id": 0,
+* "associations": {  
+   * "audio": {  
+         * "rx": [  
+                  * 0  
+         ],  
+         * "tx": [  
+                  * 0  
+         ]  
+   },  
+   * "video": {  
+         * "rx": [  
+                  * 0  
+         ],  
+         * "tx": [  
+                  * 0  
+         ]  
+   },  
+   * "serial": {  
+         * "rx": [  
+                  * 0  
+         ],  
+         * "tx": [  
+                  * 0  
+         ]  
+   },  
+   * "ir": {  
+         * "rx": [  
+                  * 0  
+         ],  
+         * "tx": [  
+                  * 0  
+         ]  
+   },  
+   * "usb": {  
+         * "rx": [  
+                  * 0  
+         ],  
+         * "tx": [  
+                  * 0  
+         ]  
+   },  
+   * "group": {  
+         * "rx": [  
+                  * 0  
+         ],  
+         * "tx": [  
+                  * 0  
+         ]  
+   }  
+},
+* "status": {  
+   * "unit_state": "unconnected",  
+   * "upgrade_state": {  
+         * "percent": 0,  
+         * "stage": "transferring"  
+   },  
+   * "mac": "string",  
+   * "model": "string",  
+   * "version": "string",  
+   * "ip": "string",  
+   * "power_source": "unknown"  
+},
+* "settings": {  
+   * "name": "string",  
+   * "supported_led_brightness": true,  
+   * "led_brightness": 0.1,  
+   * "zoneconfig": [  
+         * "fixed"  
+   ],  
+   * "supported_zoneconfig": {  
+         * "zones": [  
+                  * "fixed"  
+         ],  
+         * "bridge_aligned": true,  
+         * "zone_count": 0,  
+         * "channel_count": 0  
+   },  
+   * "supported_serial_on_tx": true,  
+   * "serial_on_tx": true,  
+   * "supported_ir_on_tx": true,  
+   * "ir_on_tx": true,  
+   * "supported_usb_on_tx": true,  
+   * "usb_on_tx": true,  
+   * "skip_upgrade": true,  
+   * "disabled": true  
+}
+}`
+
+## Update unit settings. 
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+##### path Parameters
+
+| idrequired | integer <int32\>  (Id) Component ID |
+| ---------- | ----------------------------------- |
+
+##### Request Body schema: application/json
+
+A Unit object update request.
+
+| settings | object |
+| -------- | ------ |
+
+### Responses
+
+**204** 
+
+Unit updated
+
+**400** 
+
+Update failed
+
+**404** 
+
+Unknown Unit
+
+put/api/v1/moip/unit/{id}
+
+http://localhost/api/v1/moip/unit/{id}
+
+### Request samples 
+
+* Payload
+
+Content type
+
+application/json
+
+Copy
+
+ Expand all  Collapse all 
+
+`{
+* "settings": {  
+   * "name": "string",  
+   * "led_brightness": 0.1,  
+   * "zoneconfig": [  
+         * "fixed"  
+   ],  
+   * "supported_zoneconfig": { },  
+   * "serial_on_tx": true,  
+   * "ir_on_tx": true,  
+   * "usb_on_tx": true,  
+   * "skip_upgrade": true,  
+   * "disabled": true  
+}
+}`
+
+### Response samples 
+
+* 400
+
+Content type
+
+application/json
+
+Copy
+
+`{
+* "field": "string",
+* "message": "string"
+}`
+
+## Remove unit from system. 
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+##### path Parameters
+
+| idrequired | integer <int32\>  (Id) Component ID |
+| ---------- | ----------------------------------- |
+
+### Responses
+
+**204** 
+
+Unit deleted
+
+delete/api/v1/moip/unit/{id}
+
+http://localhost/api/v1/moip/unit/{id}
+
+## Perform actions on a unit. 
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+##### path Parameters
+
+| idrequired | integer <int32\>  (Id) Component ID |
+| ---------- | ----------------------------------- |
+
+##### Request Body schema: application/json
+
+A Unit Action request.
+
+| action | string Enum: "reboot" "clear\_log" "factory\_reset" Actions supported: reboot : Reboot the unit clear\_log : Clear the unit log factory\_reset : Factory reset the unit if it supports the operation |
+| ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+
+### Responses
+
+**204** 
+
+Unit action performed
+
+**404** 
+
+Unknown Unit
+
+post/api/v1/moip/unit/{id}
+
+http://localhost/api/v1/moip/unit/{id}
+
+### Request samples 
+
+* Payload
+
+Content type
+
+application/json
+
+Copy
+
+`{
+* "action": "reboot"
+}`
+
+## Get unit statistics. 
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+##### path Parameters
+
+| idrequired | integer <int32\>  (Id) Component ID |
+| ---------- | ----------------------------------- |
+
+### Responses
+
+**200** 
+
+A UnitStats object response.
+
+**404** 
+
+Unknown Unit
+
+get/api/v1/moip/unit/{id}/stats
+
+http://localhost/api/v1/moip/unit/{id}/stats
+
+### Response samples 
+
+* 200
+
+Content type
+
+application/json
+
+Copy
+
+ Expand all  Collapse all 
+
+`{
+* "cpu_usage": -1,
+* "mem_usage": -1,
+* "failed_connections": 0,
+* "reboots": 0,
+* "temp": [  
+   * 0  
+]
+}`
+
+## Get unit log. 
+
+Not all models have a detailed log. Those that don't will return the same log as the standard version. For models that do have detailed logs, they are usually an archive of various log files and such from the unit. The content type of the response will reflect the format of the archive or text.
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+##### path Parameters
+
+| idrequired | integer <int32\>  (Id) Component ID |
+| ---------- | ----------------------------------- |
+
+##### query Parameters
+
+| detailed | integer <int32\> A non-zero value specifies the detailed version, if possible. Otherwise the standard version is targeted. |
+| -------- | -------------------------------------------------------------------------------------------------------------------------- |
+
+### Responses
+
+**200** 
+
+A Log object response.
+
+**404** 
+
+Unknown Unit
+
+get/api/v1/moip/unit/{id}/log
+
+http://localhost/api/v1/moip/unit/{id}/log
+
+## Clear unit log. 
+
+Most of the models that support detailed logs can not clear them since they are internal logs and message buffers.
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+##### path Parameters
+
+| idrequired | integer <int32\>  (Id) Component ID |
+| ---------- | ----------------------------------- |
+
+##### query Parameters
+
+| detailed | integer <int32\> A non-zero value specifies the detailed version, if possible. Otherwise the standard version is targeted. |
+| -------- | -------------------------------------------------------------------------------------------------------------------------- |
+
+### Responses
+
+**204** 
+
+Log cleared
+
+**404** 
+
+Unknown Unit
+
+delete/api/v1/moip/unit/{id}/log
+
+http://localhost/api/v1/moip/unit/{id}/log
+
+# Endpoints
+
+Path endpoints for all of the various MoIP endpoints available in the system.
+
+## Get audio RX status and settings. 
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+##### path Parameters
+
+| idrequired | integer <int32\>  (Id) Component ID |
+| ---------- | ----------------------------------- |
+
+##### query Parameters
+
+| supported | integer <int32\> A zero value removes 'supported' fields, any other value, or no parameter, leaves them in. |
+| --------- | ----------------------------------------------------------------------------------------------------------- |
+
+### Responses
+
+**200** 
+
+A AudioRx object response.
+
+**404** 
+
+Unknown AudioRx
+
+get/api/v1/moip/audio\_rx/{id}
+
+http://localhost/api/v1/moip/audio\_rx/{id}
+
+### Response samples 
+
+* 200
+
+Content type
+
+application/json
+
+Copy
+
+ Expand all  Collapse all 
+
+`{
+* "id": 0,
+* "label": "string",
+* "status": {  
+   * "state": "unconnected",  
+   * "format": "unknown",  
+   * "rate": 0,  
+   * "depth": 0,  
+   * "zoneconfig": "fixed"  
+},
+* "associations": {  
+   * "unit": 0,  
+   * "paired_tx": 0  
+},
+* "settings": {  
+   * "name": "string",  
+   * "index": 0,  
+   * "delay": 0,  
+   * "supported_delay": {  
+         * "range": [  
+                  * 0,  
+                  * 0  
+         ],  
+         * "default": 0  
+   },  
+   * "level": 0.1,  
+   * "supported_level": {  
+         * "list": [  
+                  * 0.1  
+         ],  
+         * "default": 0.1  
+   },  
+   * "volume": 0.1,  
+   * "maxvolume": 0.1,  
+   * "supported_volume": {  
+         * "range": [  
+                  * 0.1,  
+                  * 0.1  
+         ],  
+         * "default": 0.1  
+   },  
+   * "balance": 0.1,  
+   * "supported_balance": {  
+         * "range": [  
+                  * 0.1,  
+                  * 0.1  
+         ],  
+         * "default": 0.1  
+   },  
+   * "mono": true,  
+   * "bass_mgmt": true,  
+   * "fronts_small": true,  
+   * "rears_small": true,  
+   * "center_small": true,  
+   * "center_present": true,  
+   * "supported_mono": true,  
+   * "test": {  
+         * "supported": true,  
+         * "enabled": true,  
+         * "volume": 0.1  
+   },  
+   * "sub": {  
+         * "crossover_type": "none",  
+         * "supported_crossover_type": [  
+                  * "none"  
+         ],  
+         * "crossover_slope": 0,  
+         * "supported_crossover_slope": {  
+                  * "list": [  
+                              * 0  
+                  ],  
+                  * "default": 0  
+         },  
+         * "crossover_freq": 0,  
+         * "supported_crossover_freq": {  
+                  * "range": [  
+                              * 0,  
+                              * 0  
+                  ],  
+                  * "default": 0  
+         },  
+         * "volume_offset": 0.1,  
+         * "supported_volume_offset": {  
+                  * "range": [  
+                              * 0.1,  
+                              * 0.1  
+                  ],  
+                  * "default": 0.1  
+         },  
+         * "present": true  
+   },  
+   * "supported_channel_count": 0,  
+   * "supported_channel_delay": {  
+         * "range": [  
+                  * 0,  
+                  * 0  
+         ],  
+         * "default": 0  
+   },  
+   * "supported_channel_volume_offset": {  
+         * "range": [  
+                  * 0.1,  
+                  * 0.1  
+         ],  
+         * "default": 0.1  
+   },  
+   * "supported_biquad_count": 0,  
+   * "supported_biquad_freq": {  
+         * "range": [  
+                  * 0,  
+                  * 0  
+         ],  
+         * "default": 0  
+   },  
+   * "loudness": "none",  
+   * "supported_loudness": [  
+         * "none"  
+   ],  
+   * "downmix": "passthrough",  
+   * "supported_downmix": [  
+         * "passthrough"  
+   ],  
+   * "mute": [  
+         * "unknown"  
+   ],  
+   * "supported_output": [  
+         * "unknown"  
+   ]  
+}
+}`
+
+## Update audio RX settings. 
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+##### path Parameters
+
+| idrequired | integer <int32\>  (Id) Component ID |
+| ---------- | ----------------------------------- |
+
+##### Request Body schema: application/json
+
+A AudioRx object update request.
+
+| associations | object |
+| ------------ | ------ |
+| settings     | object |
+
+### Responses
+
+**204** 
+
+AudioRx updated
+
+**400** 
+
+Update failed
+
+**404** 
+
+Unknown AudioRx
+
+put/api/v1/moip/audio\_rx/{id}
+
+http://localhost/api/v1/moip/audio\_rx/{id}
+
+### Request samples 
+
+* Payload
+
+Content type
+
+application/json
+
+Copy
+
+ Expand all  Collapse all 
+
+`{
+* "associations": {  
+   * "paired_tx": 0  
+},
+* "settings": {  
+   * "name": "string",  
+   * "index": 0,  
+   * "delay": 0,  
+   * "level": 0.1,  
+   * "volume": 0.1,  
+   * "maxvolume": 0.1,  
+   * "balance": 0.1,  
+   * "mono": true,  
+   * "bass_mgmt": true,  
+   * "fronts_small": true,  
+   * "rears_small": true,  
+   * "center_small": true,  
+   * "center_present": true,  
+   * "test": {  
+         * "enabled": true,  
+         * "volume": 0.1  
+   },  
+   * "sub": {  
+         * "crossover_type": "none",  
+         * "crossover_slope": 0,  
+         * "crossover_freq": 0,  
+         * "volume_offset": 0.1,  
+         * "present": true  
+   },  
+   * "supported_channel_count": 0,  
+   * "supported_biquad_count": 0,  
+   * "loudness": "none",  
+   * "downmix": "passthrough",  
+   * "mute": [  
+         * "unknown"  
+   ]  
+}
+}`
+
+### Response samples 
+
+* 400
+
+Content type
+
+application/json
+
+Copy
+
+`{
+* "field": "string",
+* "message": "string"
+}`
+
+## Perform actions on audio RX component. 
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+##### path Parameters
+
+| idrequired | integer <int32\>  (Id) Component ID |
+| ---------- | ----------------------------------- |
+
+##### Request Body schema: application/json
+
+A AudioRx Action request.
+
+| action | string Enum: "volume\_up" "volume\_down" Actions supported: volume\_up : Increase the volume level by one. volume\_down : Decrease the volume level by one. |
+| ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+
+### Responses
+
+**204** 
+
+AudioRx action performed
+
+**404** 
+
+Unknown AudioRx
+
+post/api/v1/moip/audio\_rx/{id}
+
+http://localhost/api/v1/moip/audio\_rx/{id}
+
+### Request samples 
+
+* Payload
+
+Content type
+
+application/json
+
+Copy
+
+`{
+* "action": "volume_up"
+}`
+
+## Get audio channel settings. 
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+##### path Parameters
+
+| idrequired      | integer <int32\>  (Id) Component ID                                                                      |
+| --------------- | -------------------------------------------------------------------------------------------------------- |
+| channelrequired | integer <int32\> Audio channel index. Numbered from 0 to 'supported\_channel\_count'-1 on the audio\_rx. |
+
+### Responses
+
+**200** 
+
+An AudioChannel object response.
+
+**404** 
+
+Unknown AudioRx or channel
+
+get/api/v1/moip/audio\_rx/{id}/channel/{channel}
+
+http://localhost/api/v1/moip/audio\_rx/{id}/channel/{channel}
+
+### Response samples 
+
+* 200
+
+Content type
+
+application/json
+
+Copy
+
+`{
+* "kind": "unknown",
+* "type": "unknown",
+* "delay": 0,
+* "volume_offset": 0.1,
+* "test_enabled": true
+}`
+
+## Update audio channel settings. 
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+##### path Parameters
+
+| idrequired      | integer <int32\>  (Id) Component ID                                                                      |
+| --------------- | -------------------------------------------------------------------------------------------------------- |
+| channelrequired | integer <int32\> Audio channel index. Numbered from 0 to 'supported\_channel\_count'-1 on the audio\_rx. |
+
+##### Request Body schema: application/json
+
+An AudioChannel object update request.
+
+| delay          | integer <int32\> Added channel delay in milliseconds.                                                                                                                                                                              |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| volume\_offset | number <float\> Channel volume offset in dBs of amplification.                                                                                                                                                                     |
+| test\_enabled  | boolean Per channel test tone. Only supported if test tone is supported on the RX (see the /settings/test/supported field). The RX test volume setting also applies to the per channel tone (see the /settings/test/volume field). |
+
+### Responses
+
+**204** 
+
+AudioChannel updated
+
+**400** 
+
+Update failed
+
+**404** 
+
+Unknown AudioRx or channel
+
+put/api/v1/moip/audio\_rx/{id}/channel/{channel}
+
+http://localhost/api/v1/moip/audio\_rx/{id}/channel/{channel}
+
+### Request samples 
+
+* Payload
+
+Content type
+
+application/json
+
+Copy
+
+`{
+* "delay": 0,
+* "volume_offset": 0.1,
+* "test_enabled": true
+}`
+
+### Response samples 
+
+* 400
+
+Content type
+
+application/json
+
+Copy
+
+`{
+* "field": "string",
+* "message": "string"
+}`
+
+## Get all biquads for audio channel. 
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+##### path Parameters
+
+| idrequired      | integer <int32\>  (Id) Component ID                                                                      |
+| --------------- | -------------------------------------------------------------------------------------------------------- |
+| channelrequired | integer <int32\> Audio channel index. Numbered from 0 to 'supported\_channel\_count'-1 on the audio\_rx. |
+
+### Responses
+
+**200** 
+
+An AudioBiQuadList object response.
+
+**404** 
+
+Unknown AudioRx or channel or biquad
+
+get/api/v1/moip/audio\_rx/{id}/channel/{channel}/bq
+
+http://localhost/api/v1/moip/audio\_rx/{id}/channel/{channel}/bq
+
+### Response samples 
+
+* 200
+
+Content type
+
+application/json
+
+Copy
+
+ Expand all  Collapse all 
+
+`[
+* {  
+   * "type": "allpass",  
+   * "freq": 0,  
+   * "q": 0.1,  
+   * "gain": 0.1  
+}
+]`
+
+## Get biquad for audio channel. 
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+##### path Parameters
+
+| idrequired      | integer <int32\>  (Id) Component ID                                                                            |
+| --------------- | -------------------------------------------------------------------------------------------------------------- |
+| channelrequired | integer <int32\> Audio channel index. Numbered from 0 to 'supported\_channel\_count'-1 on the audio\_rx.       |
+| bqrequired      | integer <int32\> Audio channel biquad index. Numbered from 0 to 'supported\_biquad\_count'-1 on the audio\_rx. |
+
+### Responses
+
+**200** 
+
+An AudioBiQuad object response.
+
+**404** 
+
+Unknown AudioRx or channel or biquad
+
+get/api/v1/moip/audio\_rx/{id}/channel/{channel}/bq/{bq}
+
+http://localhost/api/v1/moip/audio\_rx/{id}/channel/{channel}/bq/{bq}
+
+### Response samples 
+
+* 200
+
+Content type
+
+application/json
+
+Copy
+
+`{
+* "type": "allpass",
+* "freq": 0,
+* "q": 0.1,
+* "gain": 0.1
+}`
+
+## Update biquad for audio channel. 
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+##### path Parameters
+
+| idrequired      | integer <int32\>  (Id) Component ID                                                                            |
+| --------------- | -------------------------------------------------------------------------------------------------------------- |
+| channelrequired | integer <int32\> Audio channel index. Numbered from 0 to 'supported\_channel\_count'-1 on the audio\_rx.       |
+| bqrequired      | integer <int32\> Audio channel biquad index. Numbered from 0 to 'supported\_biquad\_count'-1 on the audio\_rx. |
+
+##### Request Body schema: application/json
+
+An AudioBiQuad object update request.
+
+| type | string (AudioBiQuadType) Enum: "allpass" "notch" "peaking" "highshelf" "lowshelf" "bandpass" "highpass" "lowpass" |
+| ---- | ----------------------------------------------------------------------------------------------------------------- |
+| freq | integer <int32\> Operating frequency in hertz. Use varies based on filter type.                                   |
+| q    | number <float\> Filter Q value. Use varies based on filter type.                                                  |
+| gain | number <float\> Filter gain value. Use varies based on filter type.                                               |
+
+### Responses
+
+**204** 
+
+AudioBiQuad updated
+
+**400** 
+
+Update failed
+
+**404** 
+
+Unknown AudioRx or channel or biquad
+
+put/api/v1/moip/audio\_rx/{id}/channel/{channel}/bq/{bq}
+
+http://localhost/api/v1/moip/audio\_rx/{id}/channel/{channel}/bq/{bq}
+
+### Request samples 
+
+* Payload
+
+Content type
+
+application/json
+
+Copy
+
+`{
+* "type": "allpass",
+* "freq": 0,
+* "q": 0.1,
+* "gain": 0.1
+}`
+
+### Response samples 
+
+* 400
+
+Content type
+
+application/json
+
+Copy
+
+`{
+* "field": "string",
+* "message": "string"
+}`
+
+## Get biquad for main audio channels. 
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+##### path Parameters
+
+| idrequired | integer <int32\>  (Id) Component ID                                                                            |
+| ---------- | -------------------------------------------------------------------------------------------------------------- |
+| bqrequired | integer <int32\> Audio channel biquad index. Numbered from 0 to 'supported\_biquad\_count'-1 on the audio\_rx. |
+
+### Responses
+
+**200** 
+
+An AudioBiQuad object response.
+
+**404** 
+
+Unknown AudioRx or channel or biquad
+
+get/api/v1/moip/audio\_rx/{id}/main\_bq/{bq}
+
+http://localhost/api/v1/moip/audio\_rx/{id}/main\_bq/{bq}
+
+### Response samples 
+
+* 200
+
+Content type
+
+application/json
+
+Copy
+
+`{
+* "type": "allpass",
+* "freq": 0,
+* "q": 0.1,
+* "gain": 0.1
+}`
+
+## Update biquad for main audio channels. 
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+##### path Parameters
+
+| idrequired | integer <int32\>  (Id) Component ID                                                                            |
+| ---------- | -------------------------------------------------------------------------------------------------------------- |
+| bqrequired | integer <int32\> Audio channel biquad index. Numbered from 0 to 'supported\_biquad\_count'-1 on the audio\_rx. |
+
+##### Request Body schema: application/json
+
+An AudioBiQuad object update request.
+
+| type | string (AudioBiQuadType) Enum: "allpass" "notch" "peaking" "highshelf" "lowshelf" "bandpass" "highpass" "lowpass" |
+| ---- | ----------------------------------------------------------------------------------------------------------------- |
+| freq | integer <int32\> Operating frequency in hertz. Use varies based on filter type.                                   |
+| q    | number <float\> Filter Q value. Use varies based on filter type.                                                  |
+| gain | number <float\> Filter gain value. Use varies based on filter type.                                               |
+
+### Responses
+
+**204** 
+
+AudioBiQuad updated
+
+**400** 
+
+Update failed
+
+**404** 
+
+Unknown AudioRx or channel or biquad
+
+put/api/v1/moip/audio\_rx/{id}/main\_bq/{bq}
+
+http://localhost/api/v1/moip/audio\_rx/{id}/main\_bq/{bq}
+
+### Request samples 
+
+* Payload
+
+Content type
+
+application/json
+
+Copy
+
+`{
+* "type": "allpass",
+* "freq": 0,
+* "q": 0.1,
+* "gain": 0.1
+}`
+
+### Response samples 
+
+* 400
+
+Content type
+
+application/json
+
+Copy
+
+`{
+* "field": "string",
+* "message": "string"
+}`
+
+## Get biquad for sub audio channels. 
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+##### path Parameters
+
+| idrequired | integer <int32\>  (Id) Component ID                                                                            |
+| ---------- | -------------------------------------------------------------------------------------------------------------- |
+| bqrequired | integer <int32\> Audio channel biquad index. Numbered from 0 to 'supported\_biquad\_count'-1 on the audio\_rx. |
+
+### Responses
+
+**200** 
+
+An AudioBiQuad object response.
+
+**404** 
+
+Unknown AudioRx or channel or biquad
+
+get/api/v1/moip/audio\_rx/{id}/sub\_bq/{bq}
+
+http://localhost/api/v1/moip/audio\_rx/{id}/sub\_bq/{bq}
+
+### Response samples 
+
+* 200
+
+Content type
+
+application/json
+
+Copy
+
+`{
+* "type": "allpass",
+* "freq": 0,
+* "q": 0.1,
+* "gain": 0.1
+}`
+
+## Update biquad for sub audio channels. 
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+##### path Parameters
+
+| idrequired | integer <int32\>  (Id) Component ID                                                                            |
+| ---------- | -------------------------------------------------------------------------------------------------------------- |
+| bqrequired | integer <int32\> Audio channel biquad index. Numbered from 0 to 'supported\_biquad\_count'-1 on the audio\_rx. |
+
+##### Request Body schema: application/json
+
+An AudioBiQuad object update request.
+
+| type | string (AudioBiQuadType) Enum: "allpass" "notch" "peaking" "highshelf" "lowshelf" "bandpass" "highpass" "lowpass" |
+| ---- | ----------------------------------------------------------------------------------------------------------------- |
+| freq | integer <int32\> Operating frequency in hertz. Use varies based on filter type.                                   |
+| q    | number <float\> Filter Q value. Use varies based on filter type.                                                  |
+| gain | number <float\> Filter gain value. Use varies based on filter type.                                               |
+
+### Responses
+
+**204** 
+
+AudioBiQuad updated
+
+**400** 
+
+Update failed
+
+**404** 
+
+Unknown AudioRx or channel or biquad
+
+put/api/v1/moip/audio\_rx/{id}/sub\_bq/{bq}
+
+http://localhost/api/v1/moip/audio\_rx/{id}/sub\_bq/{bq}
+
+### Request samples 
+
+* Payload
+
+Content type
+
+application/json
+
+Copy
+
+`{
+* "type": "allpass",
+* "freq": 0,
+* "q": 0.1,
+* "gain": 0.1
+}`
+
+### Response samples 
+
+* 400
+
+Content type
+
+application/json
+
+Copy
+
+`{
+* "field": "string",
+* "message": "string"
+}`
+
+## Get audio TX status and settings. 
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+##### path Parameters
+
+| idrequired | integer <int32\>  (Id) Component ID |
+| ---------- | ----------------------------------- |
+
+##### query Parameters
+
+| supported | integer <int32\> A zero value removes 'supported' fields, any other value, or no parameter, leaves them in. |
+| --------- | ----------------------------------------------------------------------------------------------------------- |
+
+### Responses
+
+**200** 
+
+A AudioTx object response.
+
+**404** 
+
+Unknown AudioTx
+
+get/api/v1/moip/audio\_tx/{id}
+
+http://localhost/api/v1/moip/audio\_tx/{id}
+
+### Response samples 
+
+* 200
+
+Content type
+
+application/json
+
+Copy
+
+ Expand all  Collapse all 
+
+`{
+* "id": 0,
+* "label": "string",
+* "status": {  
+   * "state": "unconnected",  
+   * "format": "unknown",  
+   * "source": "unknown",  
+   * "rate": 0,  
+   * "depth": 0  
+},
+* "associations": {  
+   * "unit": 0  
+},
+* "settings": {  
+   * "name": "string",  
+   * "index": 0,  
+   * "enabled": true,  
+   * "source": [  
+         * "unknown"  
+   ],  
+   * "supported_source": [  
+         * "unknown"  
+   ],  
+   * "analog_rate": 0,  
+   * "supported_analog_rate": {  
+         * "list": [  
+                  * 0  
+         ],  
+         * "default": 0  
+   },  
+   * "analog_depth": 0,  
+   * "supported_analog_depth": {  
+         * "list": [  
+                  * 0  
+         ],  
+         * "default": 0  
+   },  
+   * "delay": 0,  
+   * "supported_delay": {  
+         * "range": [  
+                  * 0,  
+                  * 0  
+         ],  
+         * "default": 0  
+   },  
+   * "level": 0.1,  
+   * "supported_level": {  
+         * "list": [  
+                  * 0.1  
+         ],  
+         * "default": 0.1  
+   },  
+   * "volume": 0.1,  
+   * "supported_volume": {  
+         * "range": [  
+                  * 0.1,  
+                  * 0.1  
+         ],  
+         * "default": 0.1  
+   },  
+   * "gain": 0.1,  
+   * "supported_gain": {  
+         * "range": [  
+                  * 0.1,  
+                  * 0.1  
+         ],  
+         * "default": 0.1  
+   },  
+   * "downmix": "passthrough",  
+   * "supported_downmix": [  
+         * "passthrough"  
+   ],  
+   * "signalsense": {  
+         * "supported": true,  
+         * "enabled": true,  
+         * "supported_level": {  
+                  * "range": [  
+                              * 0.1,  
+                              * 0.1  
+                  ],  
+                  * "default": 0.1  
+         },  
+         * "level": 0.1  
+   },  
+   * "edid": {  
+         * "audio_format": "passthrough",  
+         * "supported_audio_format": [  
+                  * "passthrough"  
+         ]  
+   }  
+}
+}`
+
+## Update audio TX settings. 
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+##### path Parameters
+
+| idrequired | integer <int32\>  (Id) Component ID |
+| ---------- | ----------------------------------- |
+
+##### Request Body schema: application/json
+
+A AudioTx object update request.
+
+| associations | object |
+| ------------ | ------ |
+| settings     | object |
+
+### Responses
+
+**204** 
+
+AudioTx updated
+
+**400** 
+
+Update failed
+
+**404** 
+
+Unknown AudioTx
+
+put/api/v1/moip/audio\_tx/{id}
+
+http://localhost/api/v1/moip/audio\_tx/{id}
+
+### Request samples 
+
+* Payload
+
+Content type
+
+application/json
+
+Copy
+
+ Expand all  Collapse all 
+
+`{
+* "associations": { },
+* "settings": {  
+   * "name": "string",  
+   * "index": 0,  
+   * "enabled": true,  
+   * "source": [  
+         * "unknown"  
+   ],  
+   * "analog_rate": 0,  
+   * "analog_depth": 0,  
+   * "delay": 0,  
+   * "level": 0.1,  
+   * "volume": 0.1,  
+   * "gain": 0.1,  
+   * "downmix": "passthrough",  
+   * "signalsense": {  
+         * "supported": true,  
+         * "enabled": true,  
+         * "level": 0.1  
+   },  
+   * "edid": {  
+         * "audio_format": "passthrough"  
+   }  
+}
+}`
+
+### Response samples 
+
+* 400
+
+Content type
+
+application/json
+
+Copy
+
+`{
+* "field": "string",
+* "message": "string"
+}`
+
+## Get video RX status and settings. 
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+##### path Parameters
+
+| idrequired | integer <int32\>  (Id) Component ID |
+| ---------- | ----------------------------------- |
+
+##### query Parameters
+
+| supported | integer <int32\> A zero value removes 'supported' fields, any other value, or no parameter, leaves them in. |
+| --------- | ----------------------------------------------------------------------------------------------------------- |
+
+### Responses
+
+**200** 
+
+A VideoRx object response.
+
+**404** 
+
+Unknown VideoRx
+
+get/api/v1/moip/video\_rx/{id}
+
+http://localhost/api/v1/moip/video\_rx/{id}
+
+### Response samples 
+
+* 200
+
+Content type
+
+application/json
+
+Copy
+
+ Expand all  Collapse all 
+
+`{
+* "id": 0,
+* "label": "string",
+* "status": {  
+   * "state": "unconnected",  
+   * "condition": "string"  
+},
+* "associations": {  
+   * "unit": 0,  
+   * "paired_tx": 0,  
+   * "pip_paired_tx": 0,  
+   * "pip_paired_url": "string",  
+   * "mv_paired_tx": [  
+         * 0  
+   ]  
+},
+* "settings": {  
+   * "name": "string",  
+   * "index": 0,  
+   * "osd": "string",  
+   * "supported_osd": true,  
+   * "rotation": "none",  
+   * "supported_rotation": [  
+         * "none"  
+   ],  
+   * "vidwall": {  
+         * "enabled": true,  
+         * "mode": "v1",  
+         * "supported_mode": [  
+                  * "v1"  
+         ],  
+         * "params": [  
+                  * 0,  
+                  * 0,  
+                  * 0,  
+                  * 0  
+         ],  
+         * "moninfo": [  
+                  * 0,  
+                  * 0,  
+                  * 0,  
+                  * 0  
+         ]  
+   },  
+   * "signal_lost": {  
+         * "method": "serial",  
+         * "serial_on": {  
+                  * "format": "hex_space",  
+                  * "message": "string"  
+         },  
+         * "serial_off": {  
+                  * "format": "hex_space",  
+                  * "message": "string"  
+         },  
+         * "output": true,  
+         * "timeout": 0  
+   },  
+   * "resolution": "passthrough",  
+   * "supported_resolution": [  
+         * "passthrough"  
+   ],  
+   * "hdcp": "passthrough",  
+   * "supported_hdcp": [  
+         * "passthrough"  
+   ],  
+   * "pip": {  
+         * "supported": true,  
+         * "supported_url": true,  
+         * "enabled": true,  
+         * "position": "upper_left",  
+         * "encoding": "auto",  
+         * "supported_encoding": [  
+                  * "auto"  
+         ],  
+         * "width": 0,  
+         * "supported_width": {  
+                  * "range": [  
+                              * 0,  
+                              * 0  
+                  ],  
+                  * "default": 0  
+         }  
+   },  
+   * "mv": {  
+         * "supported": true,  
+         * "enabled": true,  
+         * "supported_layout": [  
+                  * "full"  
+         ],  
+         * "layout": "full"  
+   }  
+}
+}`
+
+## Update video RX settings. 
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+##### path Parameters
+
+| idrequired | integer <int32\>  (Id) Component ID |
+| ---------- | ----------------------------------- |
+
+##### Request Body schema: application/json
+
+A VideoRx object update request.
+
+| associations | object |
+| ------------ | ------ |
+| settings     | object |
+
+### Responses
+
+**204** 
+
+VideoRx updated
+
+**400** 
+
+Update failed
+
+**404** 
+
+Unknown VideoRx
+
+put/api/v1/moip/video\_rx/{id}
+
+http://localhost/api/v1/moip/video\_rx/{id}
+
+### Request samples 
+
+* Payload
+
+Content type
+
+application/json
+
+Copy
+
+ Expand all  Collapse all 
+
+`{
+* "associations": {  
+   * "paired_tx": 0,  
+   * "pip_paired_tx": 0,  
+   * "pip_paired_url": "string",  
+   * "mv_paired_tx": [  
+         * 0  
+   ]  
+},
+* "settings": {  
+   * "name": "string",  
+   * "index": 0,  
+   * "osd": "string",  
+   * "rotation": "none",  
+   * "vidwall": {  
+         * "enabled": true,  
+         * "mode": "v1",  
+         * "params": [  
+                  * 0,  
+                  * 0,  
+                  * 0,  
+                  * 0  
+         ],  
+         * "moninfo": [  
+                  * 0,  
+                  * 0,  
+                  * 0,  
+                  * 0  
+         ]  
+   },  
+   * "signal_lost": {  
+         * "method": "serial",  
+         * "serial_on": {  
+                  * "format": "hex_space",  
+                  * "message": "string"  
+         },  
+         * "serial_off": {  
+                  * "format": "hex_space",  
+                  * "message": "string"  
+         },  
+         * "output": true,  
+         * "timeout": 0  
+   },  
+   * "resolution": "passthrough",  
+   * "hdcp": "passthrough",  
+   * "pip": {  
+         * "supported": true,  
+         * "supported_url": true,  
+         * "enabled": true,  
+         * "position": "upper_left",  
+         * "encoding": "auto",  
+         * "width": 0  
+   },  
+   * "mv": {  
+         * "supported": true,  
+         * "enabled": true,  
+         * "layout": "full"  
+   }  
+}
+}`
+
+### Response samples 
+
+* 400
+
+Content type
+
+application/json
+
+Copy
+
+`{
+* "field": "string",
+* "message": "string"
+}`
+
+## Perform actions on video RX component. 
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+##### path Parameters
+
+| idrequired | integer <int32\>  (Id) Component ID |
+| ---------- | ----------------------------------- |
+
+##### Request Body schema: application/json
+
+A Video Send request.
+
+| format  | string Enum: "hex\_colon" "hex\_space" "tv\_on" "tv\_off" Format of the CEC transmission to send. hex\_colon is hex encoded byte values separated with colons. hex\_space is hex encoded byte values separated with spaces. tv\_on and tv\_off are canned transmissions and must have a null message value. |
+| ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| message | string or null CEC transmission to send.                                                                                                                                                                                                                                                                    |
+
+### Responses
+
+**204** 
+
+VideoRx send performed
+
+**404** 
+
+Unknown VideoRx
+
+post/api/v1/moip/video\_rx/{id}
+
+http://localhost/api/v1/moip/video\_rx/{id}
+
+### Request samples 
+
+* Payload
+
+Content type
+
+application/json
+
+Copy
+
+`{
+* "format": "hex_colon",
+* "message": "string"
+}`
+
+## Get video EDID data. 
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+##### path Parameters
+
+| idrequired | integer <int32\>  (Id) Component ID |
+| ---------- | ----------------------------------- |
+
+### Responses
+
+**200** 
+
+Current EDID of the output sink. This may be empty if the RX doesn't support fetching the EDID or if there is no attached sink. The EDID is also checked for checksum errors.
+
+**404** 
+
+Unknown VideoRx
+
+get/api/v1/moip/video\_rx/{id}/edid
+
+http://localhost/api/v1/moip/video\_rx/{id}/edid
+
+### Response samples 
+
+* 200
+
+Content type
+
+application/json
+
+Copy
+
+`{
+* "edid": "00ffffffffffff004c2def0f000e0001011d0103805f36780...",
+* "valid": true
+}`
+
+## Get video TX status and settings. 
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+##### path Parameters
+
+| idrequired | integer <int32\>  (Id) Component ID |
+| ---------- | ----------------------------------- |
+
+##### query Parameters
+
+| supported | integer <int32\> A zero value removes 'supported' fields, any other value, or no parameter, leaves them in. |
+| --------- | ----------------------------------------------------------------------------------------------------------- |
+
+### Responses
+
+**200** 
+
+A VideoTx object response.
+
+**404** 
+
+Unknown VideoTx
+
+get/api/v1/moip/video\_tx/{id}
+
+http://localhost/api/v1/moip/video\_tx/{id}
+
+### Response samples 
+
+* 200
+
+Content type
+
+application/json
+
+Copy
+
+ Expand all  Collapse all 
+
+`{
+* "id": 0,
+* "label": "string",
+* "status": {  
+   * "state": "unconnected",  
+   * "frame_rate": "string",  
+   * "color_depth": "string",  
+   * "resolution": "string",  
+   * "scan_mode": "string",  
+   * "signal_type": "string",  
+   * "pixel_rate": "string",  
+   * "hdcp": "string"  
+},
+* "associations": {  
+   * "unit": 0  
+},
+* "settings": {  
+   * "name": "string",  
+   * "index": 0,  
+   * "edid": {  
+         * "video_format": "sdr_1080p",  
+         * "supported_video_format": [  
+                  * "sdr_1080p"  
+         ],  
+         * "supported_preferred": true,  
+         * "preferred": 0  
+   },  
+   * "hdcpcap": "hdcp1x",  
+   * "supported_hdcpcap": [  
+         * "hdcp1x"  
+   ]  
+}
+}`
+
+## Update video TX settings. 
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+##### path Parameters
+
+| idrequired | integer <int32\>  (Id) Component ID |
+| ---------- | ----------------------------------- |
+
+##### Request Body schema: application/json
+
+A VideoTx object update request.
+
+| associations | object |
+| ------------ | ------ |
+| settings     | object |
+
+### Responses
+
+**204** 
+
+VideoTx updated
+
+**400** 
+
+Update failed
+
+**404** 
+
+Unknown VideoTx
+
+put/api/v1/moip/video\_tx/{id}
+
+http://localhost/api/v1/moip/video\_tx/{id}
+
+### Request samples 
+
+* Payload
+
+Content type
+
+application/json
+
+Copy
+
+ Expand all  Collapse all 
+
+`{
+* "associations": { },
+* "settings": {  
+   * "name": "string",  
+   * "index": 0,  
+   * "edid": {  
+         * "video_format": "sdr_1080p",  
+         * "preferred": 0  
+   },  
+   * "hdcpcap": "hdcp1x"  
+}
+}`
+
+### Response samples 
+
+* 400
+
+Content type
+
+application/json
+
+Copy
+
+`{
+* "field": "string",
+* "message": "string"
+}`
+
+## Get preview image. 
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+##### path Parameters
+
+| idrequired | integer <int32\>  (Id) Component ID |
+| ---------- | ----------------------------------- |
+
+### Responses
+
+**200** 
+
+Preview image response
+
+**404** 
+
+Unknown VideoTx
+
+get/api/v1/moip/video\_tx/{id}/preview
+
+http://localhost/api/v1/moip/video\_tx/{id}/preview
+
+## Get video EDID data. 
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+##### path Parameters
+
+| idrequired | integer <int32\>  (Id) Component ID |
+| ---------- | ----------------------------------- |
+
+### Responses
+
+**200** 
+
+Current EDID of the output sink. This may be empty if the RX doesn't support fetching the EDID or if there is no attached sink. The EDID is also checked for checksum errors.
+
+**404** 
+
+Unknown VideoRx
+
+get/api/v1/moip/video\_tx/{id}/edid
+
+http://localhost/api/v1/moip/video\_tx/{id}/edid
+
+### Response samples 
+
+* 200
+
+Content type
+
+application/json
+
+Copy
+
+`{
+* "edid": "00ffffffffffff004c2def0f000e0001011d0103805f36780...",
+* "valid": true
+}`
+
+## Get IR RX status and settings. 
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+##### path Parameters
+
+| idrequired | integer <int32\>  (Id) Component ID |
+| ---------- | ----------------------------------- |
+
+##### query Parameters
+
+| supported | integer <int32\> A zero value removes 'supported' fields, any other value, or no parameter, leaves them in. |
+| --------- | ----------------------------------------------------------------------------------------------------------- |
+
+### Responses
+
+**200** 
+
+A IrRx object response.
+
+**404** 
+
+Unknown IrRx
+
+get/api/v1/moip/ir\_rx/{id}
+
+http://localhost/api/v1/moip/ir\_rx/{id}
+
+### Response samples 
+
+* 200
+
+Content type
+
+application/json
+
+Copy
+
+ Expand all  Collapse all 
+
+`{
+* "id": 0,
+* "label": "string",
+* "associations": {  
+   * "unit": 0,  
+   * "paired_tx": 0  
+},
+* "status": {  
+   * "state": "unconnected"  
+},
+* "settings": {  
+   * "name": "string",  
+   * "index": 0,  
+   * "supported_ir_power": true,  
+   * "ir_power": true,  
+   * "static_routing": true  
+}
+}`
+
+## Update IR RX settings. 
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+##### path Parameters
+
+| idrequired | integer <int32\>  (Id) Component ID |
+| ---------- | ----------------------------------- |
+
+##### Request Body schema: application/json
+
+A IrRx object update request.
+
+| associations | object |
+| ------------ | ------ |
+| settings     | object |
+
+### Responses
+
+**204** 
+
+IrRx updated
+
+**400** 
+
+Update failed
+
+**404** 
+
+Unknown IrRx
+
+put/api/v1/moip/ir\_rx/{id}
+
+http://localhost/api/v1/moip/ir\_rx/{id}
+
+### Request samples 
+
+* Payload
+
+Content type
+
+application/json
+
+Copy
+
+ Expand all  Collapse all 
+
+`{
+* "associations": {  
+   * "paired_tx": 0  
+},
+* "settings": {  
+   * "name": "string",  
+   * "index": 0,  
+   * "ir_power": true,  
+   * "static_routing": true  
+}
+}`
+
+### Response samples 
+
+* 400
+
+Content type
+
+application/json
+
+Copy
+
+`{
+* "field": "string",
+* "message": "string"
+}`
+
+## Perform actions on IR RX component. 
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+##### path Parameters
+
+| idrequired | integer <int32\>  (Id) Component ID |
+| ---------- | ----------------------------------- |
+
+##### Request Body schema: application/json
+
+An Ir Send request.
+
+| format  | string Enum: "pronto" "global\_cache" Format of the IR transmission to send. |
+| ------- | ---------------------------------------------------------------------------- |
+| message | string IR transmission to send.                                              |
+
+### Responses
+
+**204** 
+
+IrRx send performed
+
+**404** 
+
+Unknown IrRx
+
+post/api/v1/moip/ir\_rx/{id}
+
+http://localhost/api/v1/moip/ir\_rx/{id}
+
+### Request samples 
+
+* Payload
+
+Content type
+
+application/json
+
+Copy
+
+`{
+* "format": "pronto",
+* "message": "string"
+}`
+
+## Get IR TX status and settings. 
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+##### path Parameters
+
+| idrequired | integer <int32\>  (Id) Component ID |
+| ---------- | ----------------------------------- |
+
+##### query Parameters
+
+| supported | integer <int32\> A zero value removes 'supported' fields, any other value, or no parameter, leaves them in. |
+| --------- | ----------------------------------------------------------------------------------------------------------- |
+
+### Responses
+
+**200** 
+
+A IrTx object response.
+
+**404** 
+
+Unknown IrTx
+
+get/api/v1/moip/ir\_tx/{id}
+
+http://localhost/api/v1/moip/ir\_tx/{id}
+
+### Response samples 
+
+* 200
+
+Content type
+
+application/json
+
+Copy
+
+ Expand all  Collapse all 
+
+`{
+* "id": 0,
+* "label": "string",
+* "associations": {  
+   * "unit": 0  
+},
+* "status": {  
+   * "state": "unconnected"  
+},
+* "settings": {  
+   * "name": "string",  
+   * "index": 0,  
+   * "supported_ir_power": true,  
+   * "ir_power": true  
+}
+}`
+
+## Update IR TX settings. 
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+##### path Parameters
+
+| idrequired | integer <int32\>  (Id) Component ID |
+| ---------- | ----------------------------------- |
+
+##### Request Body schema: application/json
+
+A IrTx object update request.
+
+| associations | object |
+| ------------ | ------ |
+| settings     | object |
+
+### Responses
+
+**204** 
+
+IrTx updated
+
+**400** 
+
+Update failed
+
+**404** 
+
+Unknown IrTx
+
+put/api/v1/moip/ir\_tx/{id}
+
+http://localhost/api/v1/moip/ir\_tx/{id}
+
+### Request samples 
+
+* Payload
+
+Content type
+
+application/json
+
+Copy
+
+ Expand all  Collapse all 
+
+`{
+* "associations": { },
+* "settings": {  
+   * "name": "string",  
+   * "index": 0,  
+   * "ir_power": true  
+}
+}`
+
+### Response samples 
+
+* 400
+
+Content type
+
+application/json
+
+Copy
+
+`{
+* "field": "string",
+* "message": "string"
+}`
+
+## Get USB RX status and settings. 
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+##### path Parameters
+
+| idrequired | integer <int32\>  (Id) Component ID |
+| ---------- | ----------------------------------- |
+
+##### query Parameters
+
+| supported | integer <int32\> A zero value removes 'supported' fields, any other value, or no parameter, leaves them in. |
+| --------- | ----------------------------------------------------------------------------------------------------------- |
+
+### Responses
+
+**200** 
+
+A UsbRx object response.
+
+**404** 
+
+Unknown UsbRx
+
+get/api/v1/moip/usb\_rx/{id}
+
+http://localhost/api/v1/moip/usb\_rx/{id}
+
+### Response samples 
+
+* 200
+
+Content type
+
+application/json
+
+Copy
+
+ Expand all  Collapse all 
+
+`{
+* "id": 0,
+* "label": "string",
+* "associations": {  
+   * "unit": 0,  
+   * "paired_tx": 0  
+},
+* "status": {  
+   * "state": "unconnected"  
+},
+* "settings": {  
+   * "name": "string",  
+   * "index": 0,  
+   * "static_routing": true  
+}
+}`
+
+## Update USB RX settings. 
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+##### path Parameters
+
+| idrequired | integer <int32\>  (Id) Component ID |
+| ---------- | ----------------------------------- |
+
+##### Request Body schema: application/json
+
+A UsbRx object update request.
+
+| associations | object |
+| ------------ | ------ |
+| settings     | object |
+
+### Responses
+
+**204** 
+
+UsbRx updated
+
+**400** 
+
+Update failed
+
+**404** 
+
+Unknown UsbRx
+
+put/api/v1/moip/usb\_rx/{id}
+
+http://localhost/api/v1/moip/usb\_rx/{id}
+
+### Request samples 
+
+* Payload
+
+Content type
+
+application/json
+
+Copy
+
+ Expand all  Collapse all 
+
+`{
+* "associations": {  
+   * "paired_tx": 0  
+},
+* "settings": {  
+   * "name": "string",  
+   * "index": 0,  
+   * "static_routing": true  
+}
+}`
+
+### Response samples 
+
+* 400
+
+Content type
+
+application/json
+
+Copy
+
+`{
+* "field": "string",
+* "message": "string"
+}`
+
+## Get USB TX status and settings. 
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+##### path Parameters
+
+| idrequired | integer <int32\>  (Id) Component ID |
+| ---------- | ----------------------------------- |
+
+##### query Parameters
+
+| supported | integer <int32\> A zero value removes 'supported' fields, any other value, or no parameter, leaves them in. |
+| --------- | ----------------------------------------------------------------------------------------------------------- |
+
+### Responses
+
+**200** 
+
+A UsbTx object response.
+
+**404** 
+
+Unknown UsbTx
+
+get/api/v1/moip/usb\_tx/{id}
+
+http://localhost/api/v1/moip/usb\_tx/{id}
+
+### Response samples 
+
+* 200
+
+Content type
+
+application/json
+
+Copy
+
+ Expand all  Collapse all 
+
+`{
+* "id": 0,
+* "label": "string",
+* "associations": {  
+   * "unit": 0  
+},
+* "status": {  
+   * "state": "unconnected"  
+},
+* "settings": {  
+   * "name": "string",  
+   * "index": 0  
+}
+}`
+
+## Update USB TX settings. 
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+##### path Parameters
+
+| idrequired | integer <int32\>  (Id) Component ID |
+| ---------- | ----------------------------------- |
+
+##### Request Body schema: application/json
+
+A UsbTx object update request.
+
+| associations | object |
+| ------------ | ------ |
+| settings     | object |
+
+### Responses
+
+**204** 
+
+UsbTx updated
+
+**400** 
+
+Update failed
+
+**404** 
+
+Unknown UsbTx
+
+put/api/v1/moip/usb\_tx/{id}
+
+http://localhost/api/v1/moip/usb\_tx/{id}
+
+### Request samples 
+
+* Payload
+
+Content type
+
+application/json
+
+Copy
+
+ Expand all  Collapse all 
+
+`{
+* "associations": { },
+* "settings": {  
+   * "name": "string",  
+   * "index": 0  
+}
+}`
+
+### Response samples 
+
+* 400
+
+Content type
+
+application/json
+
+Copy
+
+`{
+* "field": "string",
+* "message": "string"
+}`
+
+## Get serial RX status and settings. 
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+##### path Parameters
+
+| idrequired | integer <int32\>  (Id) Component ID |
+| ---------- | ----------------------------------- |
+
+##### query Parameters
+
+| supported | integer <int32\> A zero value removes 'supported' fields, any other value, or no parameter, leaves them in. |
+| --------- | ----------------------------------------------------------------------------------------------------------- |
+
+### Responses
+
+**200** 
+
+A SerialRx object response.
+
+**404** 
+
+Unknown SerialRx
+
+get/api/v1/moip/serial\_rx/{id}
+
+http://localhost/api/v1/moip/serial\_rx/{id}
+
+### Response samples 
+
+* 200
+
+Content type
+
+application/json
+
+Copy
+
+ Expand all  Collapse all 
+
+`{
+* "id": 0,
+* "label": "string",
+* "associations": {  
+   * "unit": 0,  
+   * "paired_tx": 0,  
+   * "paired_capture": true  
+},
+* "status": {  
+   * "state": "unconnected",  
+   * "messages": 0  
+},
+* "settings": {  
+   * "name": "string",  
+   * "index": 0,  
+   * "supported_mode": [  
+         * "dce"  
+   ],  
+   * "mode": "dce",  
+   * "baud_rate": 0,  
+   * "data_bits": 0,  
+   * "stop_bits": 0,  
+   * "parity": "none",  
+   * "format": "hex_space",  
+   * "static_routing": true  
+}
+}`
+
+## Update serial RX settings. 
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+##### path Parameters
+
+| idrequired | integer <int32\>  (Id) Component ID |
+| ---------- | ----------------------------------- |
+
+##### Request Body schema: application/json
+
+A SerialRx object update request.
+
+| associations | object |
+| ------------ | ------ |
+| settings     | object |
+
+### Responses
+
+**204** 
+
+SerialRx updated
+
+**400** 
+
+Update failed
+
+**404** 
+
+Unknown SerialRx
+
+put/api/v1/moip/serial\_rx/{id}
+
+http://localhost/api/v1/moip/serial\_rx/{id}
+
+### Request samples 
+
+* Payload
+
+Content type
+
+application/json
+
+Copy
+
+ Expand all  Collapse all 
+
+`{
+* "associations": {  
+   * "paired_tx": 0,  
+   * "paired_capture": true  
+},
+* "settings": {  
+   * "name": "string",  
+   * "index": 0,  
+   * "mode": "dce",  
+   * "baud_rate": 0,  
+   * "data_bits": 0,  
+   * "stop_bits": 0,  
+   * "parity": "none",  
+   * "format": "hex_space",  
+   * "static_routing": true  
+}
+}`
+
+### Response samples 
+
+* 400
+
+Content type
+
+application/json
+
+Copy
+
+`{
+* "field": "string",
+* "message": "string"
+}`
+
+## Perform actions on serial component. 
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+##### path Parameters
+
+| idrequired | integer <int32\>  (Id) Component ID |
+| ---------- | ----------------------------------- |
+
+##### Request Body schema: application/json
+
+An Serial Send request.
+
+| format  | string (SerialFormatType) Enum: "hex\_space" "hex\_packed" "hex\_comma" "hex\_colon" "raw" How the message is encoded. packed has no separators. raw is as is; this may have issues with non-ascii values. |
+| ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| message | string                                                                                                                                                                                                     |
+
+### Responses
+
+**204** 
+
+Serial send performed
+
+**404** 
+
+Unknown SerialRx
+
+post/api/v1/moip/serial\_rx/{id}
+
+http://localhost/api/v1/moip/serial\_rx/{id}
+
+### Request samples 
+
+* Payload
+
+Content type
+
+application/json
+
+Copy
+
+`{
+* "format": "hex_space",
+* "message": "string"
+}`
+
+## Get next serial message. 
+
+Fetch the next queued serial message received on the endpoint. Does not remove message from queue; issue a delete to pop the next serial message.
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+##### path Parameters
+
+| idrequired | integer <int32\>  (Id) Component ID |
+| ---------- | ----------------------------------- |
+
+### Responses
+
+**200** 
+
+A SerialMessage object response.
+
+**204** 
+
+No serial message pending
+
+**404** 
+
+Unknown SerialRx
+
+get/api/v1/moip/serial\_rx/{id}/message
+
+http://localhost/api/v1/moip/serial\_rx/{id}/message
+
+### Response samples 
+
+* 200
+
+Content type
+
+application/json
+
+Copy
+
+`{
+* "format": "hex_space",
+* "message": "string"
+}`
+
+## Clear next serial message. 
+
+Pop the next serial message. Ok to do on an empty queue.
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+##### path Parameters
+
+| idrequired | integer <int32\>  (Id) Component ID |
+| ---------- | ----------------------------------- |
+
+### Responses
+
+**204** 
+
+Next serial message removed
+
+**404** 
+
+Unknown SerialRx
+
+delete/api/v1/moip/serial\_rx/{id}/message
+
+http://localhost/api/v1/moip/serial\_rx/{id}/message
+
+## Get serial TX status and settings. 
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+##### path Parameters
+
+| idrequired | integer <int32\>  (Id) Component ID |
+| ---------- | ----------------------------------- |
+
+##### query Parameters
+
+| supported | integer <int32\> A zero value removes 'supported' fields, any other value, or no parameter, leaves them in. |
+| --------- | ----------------------------------------------------------------------------------------------------------- |
+
+### Responses
+
+**200** 
+
+A SerialTx object response.
+
+**404** 
+
+Unknown SerialTx
+
+get/api/v1/moip/serial\_tx/{id}
+
+http://localhost/api/v1/moip/serial\_tx/{id}
+
+### Response samples 
+
+* 200
+
+Content type
+
+application/json
+
+Copy
+
+ Expand all  Collapse all 
+
+`{
+* "id": 0,
+* "label": "string",
+* "associations": {  
+   * "unit": 0,  
+   * "paired_capture": true  
+},
+* "status": {  
+   * "state": "unconnected",  
+   * "messages": 0  
+},
+* "settings": {  
+   * "name": "string",  
+   * "index": 0,  
+   * "supported_mode": [  
+         * "dce"  
+   ],  
+   * "mode": "dce",  
+   * "baud_rate": 0,  
+   * "data_bits": 0,  
+   * "stop_bits": 0,  
+   * "parity": "none",  
+   * "format": "hex_space"  
+}
+}`
+
+## Update serial TX settings. 
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+##### path Parameters
+
+| idrequired | integer <int32\>  (Id) Component ID |
+| ---------- | ----------------------------------- |
+
+##### Request Body schema: application/json
+
+A SerialTx object update request.
+
+| associations | object |
+| ------------ | ------ |
+| settings     | object |
+
+### Responses
+
+**204** 
+
+SerialTx updated
+
+**400** 
+
+Update failed
+
+**404** 
+
+Unknown SerialTx
+
+put/api/v1/moip/serial\_tx/{id}
+
+http://localhost/api/v1/moip/serial\_tx/{id}
+
+### Request samples 
+
+* Payload
+
+Content type
+
+application/json
+
+Copy
+
+ Expand all  Collapse all 
+
+`{
+* "associations": {  
+   * "paired_capture": true  
+},
+* "settings": {  
+   * "name": "string",  
+   * "index": 0,  
+   * "mode": "dce",  
+   * "baud_rate": 0,  
+   * "data_bits": 0,  
+   * "stop_bits": 0,  
+   * "parity": "none",  
+   * "format": "hex_space"  
+}
+}`
+
+### Response samples 
+
+* 400
+
+Content type
+
+application/json
+
+Copy
+
+`{
+* "field": "string",
+* "message": "string"
+}`
+
+## Perform actions on serial component. 
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+##### path Parameters
+
+| idrequired | integer <int32\>  (Id) Component ID |
+| ---------- | ----------------------------------- |
+
+##### Request Body schema: application/json
+
+An Serial Send request.
+
+| format  | string (SerialFormatType) Enum: "hex\_space" "hex\_packed" "hex\_comma" "hex\_colon" "raw" How the message is encoded. packed has no separators. raw is as is; this may have issues with non-ascii values. |
+| ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| message | string                                                                                                                                                                                                     |
+
+### Responses
+
+**204** 
+
+Serial send performed
+
+**404** 
+
+Unknown SerialTx
+
+post/api/v1/moip/serial\_tx/{id}
+
+http://localhost/api/v1/moip/serial\_tx/{id}
+
+### Request samples 
+
+* Payload
+
+Content type
+
+application/json
+
+Copy
+
+`{
+* "format": "hex_space",
+* "message": "string"
+}`
+
+## Get next serial message. 
+
+Fetch the next queued serial message received on the endpoint. Does not remove message from queue; issue a delete to pop next serial message.
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+##### path Parameters
+
+| idrequired | integer <int32\>  (Id) Component ID |
+| ---------- | ----------------------------------- |
+
+### Responses
+
+**200** 
+
+A SerialMessage object response.
+
+**204** 
+
+No serial message pending
+
+**404** 
+
+Unknown SerialTx
+
+get/api/v1/moip/serial\_tx/{id}/message
+
+http://localhost/api/v1/moip/serial\_tx/{id}/message
+
+### Response samples 
+
+* 200
+
+Content type
+
+application/json
+
+Copy
+
+`{
+* "format": "hex_space",
+* "message": "string"
+}`
+
+## Clear next serial message. 
+
+Pop the next serial message. Ok to do on an empty queue.
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+##### path Parameters
+
+| idrequired | integer <int32\>  (Id) Component ID |
+| ---------- | ----------------------------------- |
+
+### Responses
+
+**204** 
+
+Next serial message removed
+
+**404** 
+
+Unknown SerialTx
+
+delete/api/v1/moip/serial\_tx/{id}/message
+
+http://localhost/api/v1/moip/serial\_tx/{id}/message
+
+## /api/v1/moip/group\_rx 
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+##### query Parameters
+
+| index | integer <int32\> Lookup an entry by its index position value. |
+| ----- | ------------------------------------------------------------- |
+
+### Responses
+
+**200** 
+
+A GroupRx object response.
+
+**404** 
+
+Unknown GroupRx
+
+get/api/v1/moip/group\_rx
+
+http://localhost/api/v1/moip/group\_rx
+
+### Response samples 
+
+* 200
+
+Content type
+
+application/json
+
+Copy
+
+ Expand all  Collapse all 
+
+`{
+* "id": 0,
+* "associations": {  
+   * "unit": 0,  
+   * "vidwall": 0,  
+   * "audio_rx": 0,  
+   * "video_rx": 0,  
+   * "serial_rx": 0,  
+   * "ir_rx": 0,  
+   * "usb_rx": 0,  
+   * "paired_tx": 0,  
+   * "pip_paired_tx": 0,  
+   * "pip_paired_url": "string",  
+   * "mv_paired_tx": [  
+         * 0  
+   ]  
+},
+* "settings": {  
+   * "name": "string",  
+   * "index": 0,  
+   * "pip": {  
+         * "enabled": true,  
+         * "audio_selected": true  
+   },  
+   * "mv": {  
+         * "enabled": true,  
+         * "audio_selected": 0  
+   }  
+},
+* "status": {  
+   * "state": "unconnected"  
+}
+}`
+
+## Get group RX status and settings. 
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+##### path Parameters
+
+| idrequired | integer <int32\>  (Id) Component ID |
+| ---------- | ----------------------------------- |
+
+### Responses
+
+**200** 
+
+A GroupRx object response.
+
+**404** 
+
+Unknown GroupRx
+
+get/api/v1/moip/group\_rx/{id}
+
+http://localhost/api/v1/moip/group\_rx/{id}
+
+### Response samples 
+
+* 200
+
+Content type
+
+application/json
+
+Copy
+
+ Expand all  Collapse all 
+
+`{
+* "id": 0,
+* "associations": {  
+   * "unit": 0,  
+   * "vidwall": 0,  
+   * "audio_rx": 0,  
+   * "video_rx": 0,  
+   * "serial_rx": 0,  
+   * "ir_rx": 0,  
+   * "usb_rx": 0,  
+   * "paired_tx": 0,  
+   * "pip_paired_tx": 0,  
+   * "pip_paired_url": "string",  
+   * "mv_paired_tx": [  
+         * 0  
+   ]  
+},
+* "settings": {  
+   * "name": "string",  
+   * "index": 0,  
+   * "pip": {  
+         * "enabled": true,  
+         * "audio_selected": true  
+   },  
+   * "mv": {  
+         * "enabled": true,  
+         * "audio_selected": 0  
+   }  
+},
+* "status": {  
+   * "state": "unconnected"  
+}
+}`
+
+## Update group RX settings. 
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+##### path Parameters
+
+| idrequired | integer <int32\>  (Id) Component ID |
+| ---------- | ----------------------------------- |
+
+##### Request Body schema: application/json
+
+A GroupRx object update request.
+
+| associations | object |
+| ------------ | ------ |
+| settings     | object |
+| status       | object |
+
+### Responses
+
+**204** 
+
+GroupRx updated
+
+**400** 
+
+Update failed
+
+**404** 
+
+Unknown GroupRx
+
+put/api/v1/moip/group\_rx/{id}
+
+http://localhost/api/v1/moip/group\_rx/{id}
+
+### Request samples 
+
+* Payload
+
+Content type
+
+application/json
+
+Copy
+
+ Expand all  Collapse all 
+
+`{
+* "associations": {  
+   * "paired_tx": 0,  
+   * "pip_paired_tx": 0,  
+   * "pip_paired_url": "string",  
+   * "mv_paired_tx": [  
+         * 0  
+   ]  
+},
+* "settings": {  
+   * "name": "string",  
+   * "index": 0,  
+   * "pip": {  
+         * "enabled": true,  
+         * "audio_selected": true  
+   },  
+   * "mv": {  
+         * "enabled": true,  
+         * "audio_selected": 0  
+   }  
+},
+* "status": { }
+}`
+
+### Response samples 
+
+* 400
+
+Content type
+
+application/json
+
+Copy
+
+`{
+* "field": "string",
+* "message": "string"
+}`
+
+## /api/v1/moip/group\_tx 
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+##### query Parameters
+
+| index | integer <int32\> Lookup an entry by its index position value. |
+| ----- | ------------------------------------------------------------- |
+
+### Responses
+
+**200** 
+
+A GroupTx object response.
+
+**404** 
+
+Unknown GroupTx
+
+get/api/v1/moip/group\_tx
+
+http://localhost/api/v1/moip/group\_tx
+
+### Response samples 
+
+* 200
+
+Content type
+
+application/json
+
+Copy
+
+ Expand all  Collapse all 
+
+`{
+* "id": 0,
+* "associations": {  
+   * "unit": 0,  
+   * "audio_tx": 0,  
+   * "video_tx": 0,  
+   * "serial_tx": 0,  
+   * "ir_tx": 0,  
+   * "usb_tx": 0  
+},
+* "settings": {  
+   * "name": "string",  
+   * "index": 0  
+},
+* "status": {  
+   * "state": "unconnected"  
+}
+}`
+
+## Get group TX status and settings. 
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+##### path Parameters
+
+| idrequired | integer <int32\>  (Id) Component ID |
+| ---------- | ----------------------------------- |
+
+### Responses
+
+**200** 
+
+A GroupTx object response.
+
+**404** 
+
+Unknown GroupTx
+
+get/api/v1/moip/group\_tx/{id}
+
+http://localhost/api/v1/moip/group\_tx/{id}
+
+### Response samples 
+
+* 200
+
+Content type
+
+application/json
+
+Copy
+
+ Expand all  Collapse all 
+
+`{
+* "id": 0,
+* "associations": {  
+   * "unit": 0,  
+   * "audio_tx": 0,  
+   * "video_tx": 0,  
+   * "serial_tx": 0,  
+   * "ir_tx": 0,  
+   * "usb_tx": 0  
+},
+* "settings": {  
+   * "name": "string",  
+   * "index": 0  
+},
+* "status": {  
+   * "state": "unconnected"  
+}
+}`
+
+## Update group TX settings. 
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+##### path Parameters
+
+| idrequired | integer <int32\>  (Id) Component ID |
+| ---------- | ----------------------------------- |
+
+##### Request Body schema: application/json
+
+A GroupTx object update request.
+
+| associations | object |
+| ------------ | ------ |
+| settings     | object |
+| status       | object |
+
+### Responses
+
+**204** 
+
+GroupTx updated
+
+**400** 
+
+Update failed
+
+**404** 
+
+Unknown GroupTx
+
+put/api/v1/moip/group\_tx/{id}
+
+http://localhost/api/v1/moip/group\_tx/{id}
+
+### Request samples 
+
+* Payload
+
+Content type
+
+application/json
+
+Copy
+
+ Expand all  Collapse all 
+
+`{
+* "associations": { },
+* "settings": {  
+   * "name": "string",  
+   * "index": 0  
+},
+* "status": { }
+}`
+
+### Response samples 
+
+* 400
+
+Content type
+
+application/json
+
+Copy
+
+`{
+* "field": "string",
+* "message": "string"
+}`
+
+# Video Walls
+
+Path endpoints for video wall compositions.
+
+## Get all video walls. 
+
+Get a list of all video wall IDs in the system. Or if search parameters are given, possibly a single vidwall.
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+##### query Parameters
+
+| index | integer <int32\> Lookup an entry by its index position value. |
+| ----- | ------------------------------------------------------------- |
+
+### Responses
+
+**200** 
+
+List of VideoWalls or a single VideoWall if search parameters used.
+
+**404** 
+
+Unknown VideoWall
+
+get/api/v1/moip/vidwall
+
+http://localhost/api/v1/moip/vidwall
+
+### Response samples 
+
+* 200
+
+Content type
+
+application/json
+
+Example
+
+IdListVideoWallIdList
+
+Copy
+
+ Expand all  Collapse all 
+
+`{
+* "items": [  
+   * 0  
+]
+}`
+
+## Create a new video wall. 
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+##### Request Body schema: application/json
+
+A VideoWall object create request.
+
+| associations | object |
+| ------------ | ------ |
+| settings     | object |
+
+### Responses
+
+**200** 
+
+A VideoWall object create response.
+
+**400** 
+
+Create failed
+
+**404** 
+
+Unknown VideoWall
+
+post/api/v1/moip/vidwall
+
+http://localhost/api/v1/moip/vidwall
+
+### Request samples 
+
+* Payload
+
+Content type
+
+application/json
+
+Copy
+
+ Expand all  Collapse all 
+
+`{
+* "associations": {  
+   * "group_rx": [  
+         * 0  
+   ],  
+   * "paired_tx": 0  
+},
+* "settings": {  
+   * "name": "string",  
+   * "index": 0,  
+   * "width": 0,  
+   * "height": 0  
+}
+}`
+
+### Response samples 
+
+* 200
+* 400
+
+Content type
+
+application/json
+
+Copy
+
+`{
+* "id": 0
+}`
+
+## Get video wall status and settings. 
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+##### path Parameters
+
+| idrequired | integer <int32\>  (Id) Component ID |
+| ---------- | ----------------------------------- |
+
+### Responses
+
+**200** 
+
+A VideoWall object response.
+
+**404** 
+
+Unknown VideoWall
+
+get/api/v1/moip/vidwall/{id}
+
+http://localhost/api/v1/moip/vidwall/{id}
+
+### Response samples 
+
+* 200
+
+Content type
+
+application/json
+
+Copy
+
+ Expand all  Collapse all 
+
+`{
+* "id": 0,
+* "associations": {  
+   * "group_rx": [  
+         * 0  
+   ],  
+   * "paired_tx": 0  
+},
+* "status": {  
+   * "state": "unconnected"  
+},
+* "settings": {  
+   * "name": "string",  
+   * "index": 0,  
+   * "width": 0,  
+   * "height": 0  
+}
+}`
+
+## Update video wall settings. 
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+##### path Parameters
+
+| idrequired | integer <int32\>  (Id) Component ID |
+| ---------- | ----------------------------------- |
+
+##### Request Body schema: application/json
+
+A VideoWall object update request.
+
+| associations | object |
+| ------------ | ------ |
+| settings     | object |
+
+### Responses
+
+**204** 
+
+VideoWall updated
+
+**400** 
+
+Update failed
+
+**404** 
+
+Unknown VideoWall
+
+put/api/v1/moip/vidwall/{id}
+
+http://localhost/api/v1/moip/vidwall/{id}
+
+### Request samples 
+
+* Payload
+
+Content type
+
+application/json
+
+Copy
+
+ Expand all  Collapse all 
+
+`{
+* "associations": {  
+   * "group_rx": [  
+         * 0  
+   ],  
+   * "paired_tx": 0  
+},
+* "settings": {  
+   * "name": "string",  
+   * "index": 0,  
+   * "width": 0,  
+   * "height": 0  
+}
+}`
+
+### Response samples 
+
+* 400
+
+Content type
+
+application/json
+
+Copy
+
+`{
+* "field": "string",
+* "message": "string"
+}`
+
+## Remove video wall from system. 
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+##### path Parameters
+
+| idrequired | integer <int32\>  (Id) Component ID |
+| ---------- | ----------------------------------- |
+
+### Responses
+
+**204** 
+
+VideoWall deleted
+
+**404** 
+
+Unknown VideoWall
+
+delete/api/v1/moip/vidwall/{id}
+
+http://localhost/api/v1/moip/vidwall/{id}
+
+# Multiview Layouts
+
+Path endpoints for multiview layouts.
+
+## Get layout window information. 
+
+Get all of the window locations and sizes for a given multiview fixed layout.
+
+##### Authorizations:
+
+_BearerAuth_ _AltJwtAuth_ _JwtUrlAuth_
+
+##### path Parameters
+
+| fixed\_layoutrequired | string (MvLayoutType) Enum: "full" "2x2" "3x3" "4x4" "side\_by\_side" "two\_over\_one" "large\_over\_three" "three\_by\_large" "center\_in\_six" "six\_lr\_large" Multiview layouts. |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+
+### Responses
+
+**200** 
+
+A MvFixedLayout object response.
+
+**404** 
+
+Unknown MvFixedLayout
+
+get/api/v1/moip/fixed\_layout/{fixed\_layout}
+
+http://localhost/api/v1/moip/fixed\_layout/{fixed\_layout}
+
+### Response samples 
+
+* 200
+
+Content type
+
+application/json
+
+Copy
+
+ Expand all  Collapse all 
+
+`{
+* "fixed_layout": "full",
+* "name": "string",
+* "size": {  
+   * "width": 0,  
+   * "height": 0  
+},
+* "windows": [  
+   * {  
+         * "position": {  
+                  * "x": 0,  
+                  * "y": 0  
+         },  
+         * "size": {  
+                  * "width": 0,  
+                  * "height": 0  
+         }  
+   }  
+]
+}`

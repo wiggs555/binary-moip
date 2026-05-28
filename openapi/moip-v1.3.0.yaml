@@ -1,0 +1,1206 @@
+openapi: 3.0.3
+info:
+  title: MoIP Controller API
+  version: 1.3.0
+  description: REST API for Binary MoIP Controllers
+servers:
+  - url: http://localhost
+    description: Local controller
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    DigestAuth:
+      type: http
+      scheme: digest
+  schemas:
+    GenericObject:
+      type: object
+      additionalProperties: true
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: object
+          properties:
+            code:
+              type: integer
+            message:
+              type: string
+    LoginResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        tokenType:
+          type: string
+        expiresIn:
+          type: integer
+paths:
+  /api/v1/base:
+    get:
+      operationId: get_api_v1_base
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+    put:
+      operationId: put_api_v1_base
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+  /api/v1/base/auth/credentials:
+    put:
+      operationId: put_api_v1_base_auth_credentials
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+  /api/v1/base/auth/login:
+    get:
+      operationId: get_api_v1_base_auth_login
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+    post:
+      operationId: post_api_v1_base_auth_login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+  /api/v1/base/config:
+    get:
+      operationId: get_api_v1_base_config
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+    put:
+      operationId: put_api_v1_base_config
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+  /api/v1/base/config/reset:
+    post:
+      operationId: post_api_v1_base_config_reset
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+  /api/v1/base/firmware:
+    get:
+      operationId: get_api_v1_base_firmware
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+    put:
+      operationId: put_api_v1_base_firmware
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+  /api/v1/base/hwcon/reboot:
+    post:
+      operationId: post_api_v1_base_hwcon_reboot
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+  /api/v1/base/info:
+    get:
+      operationId: get_api_v1_base_info
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+  /api/v1/base/lan:
+    get:
+      operationId: get_api_v1_base_lan
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+    put:
+      operationId: put_api_v1_base_lan
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+  /api/v1/base/stats:
+    get:
+      operationId: get_api_v1_base_stats
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+  /api/v1/base/time:
+    get:
+      operationId: get_api_v1_base_time
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+  /api/v1/moip/audio_rx/{id}:
+    get:
+      operationId: get_api_v1_moip_audio_rx_id
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+    post:
+      operationId: post_api_v1_moip_audio_rx_id
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+    put:
+      operationId: put_api_v1_moip_audio_rx_id
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+  /api/v1/moip/audio_rx/{id}/channel/{channel}:
+    get:
+      operationId: get_api_v1_moip_audio_rx_id_channel_channel
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+    put:
+      operationId: put_api_v1_moip_audio_rx_id_channel_channel
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+  /api/v1/moip/audio_rx/{id}/channel/{channel}/bq:
+    get:
+      operationId: get_api_v1_moip_audio_rx_id_channel_channel_bq
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+  /api/v1/moip/audio_rx/{id}/channel/{channel}/bq/{bq}:
+    get:
+      operationId: get_api_v1_moip_audio_rx_id_channel_channel_bq_bq
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+    put:
+      operationId: put_api_v1_moip_audio_rx_id_channel_channel_bq_bq
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+  /api/v1/moip/audio_rx/{id}/main_bq/{bq}:
+    get:
+      operationId: get_api_v1_moip_audio_rx_id_main_bq_bq
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+    put:
+      operationId: put_api_v1_moip_audio_rx_id_main_bq_bq
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+  /api/v1/moip/audio_rx/{id}/sub_bq/{bq}:
+    get:
+      operationId: get_api_v1_moip_audio_rx_id_sub_bq_bq
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+    put:
+      operationId: put_api_v1_moip_audio_rx_id_sub_bq_bq
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+  /api/v1/moip/audio_tx/{id}:
+    get:
+      operationId: get_api_v1_moip_audio_tx_id
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+    put:
+      operationId: put_api_v1_moip_audio_tx_id
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+  /api/v1/moip/change:
+    get:
+      operationId: get_api_v1_moip_change
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+  /api/v1/moip/fixed_layout/{fixed_layout}:
+    get:
+      operationId: get_api_v1_moip_fixed_layout_fixed_layout
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+  /api/v1/moip/group_rx:
+    get:
+      operationId: get_api_v1_moip_group_rx
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+  /api/v1/moip/group_rx/{id}:
+    get:
+      operationId: get_api_v1_moip_group_rx_id
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+    put:
+      operationId: put_api_v1_moip_group_rx_id
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+  /api/v1/moip/group_tx:
+    get:
+      operationId: get_api_v1_moip_group_tx
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+  /api/v1/moip/group_tx/{id}:
+    get:
+      operationId: get_api_v1_moip_group_tx_id
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+    put:
+      operationId: put_api_v1_moip_group_tx_id
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+  /api/v1/moip/ir_rx/{id}:
+    get:
+      operationId: get_api_v1_moip_ir_rx_id
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+    post:
+      operationId: post_api_v1_moip_ir_rx_id
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+    put:
+      operationId: put_api_v1_moip_ir_rx_id
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+  /api/v1/moip/ir_tx/{id}:
+    get:
+      operationId: get_api_v1_moip_ir_tx_id
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+    put:
+      operationId: put_api_v1_moip_ir_tx_id
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+  /api/v1/moip/raw_change:
+    get:
+      operationId: get_api_v1_moip_raw_change
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+  /api/v1/moip/serial_rx/{id}:
+    get:
+      operationId: get_api_v1_moip_serial_rx_id
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+    post:
+      operationId: post_api_v1_moip_serial_rx_id
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+    put:
+      operationId: put_api_v1_moip_serial_rx_id
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+  /api/v1/moip/serial_rx/{id}/message:
+    delete:
+      operationId: delete_api_v1_moip_serial_rx_id_message
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+    get:
+      operationId: get_api_v1_moip_serial_rx_id_message
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+  /api/v1/moip/serial_tx/{id}:
+    get:
+      operationId: get_api_v1_moip_serial_tx_id
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+    post:
+      operationId: post_api_v1_moip_serial_tx_id
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+    put:
+      operationId: put_api_v1_moip_serial_tx_id
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+  /api/v1/moip/serial_tx/{id}/message:
+    delete:
+      operationId: delete_api_v1_moip_serial_tx_id_message
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+    get:
+      operationId: get_api_v1_moip_serial_tx_id_message
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+  /api/v1/moip/system:
+    get:
+      operationId: get_api_v1_moip_system
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+    post:
+      operationId: post_api_v1_moip_system
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+    put:
+      operationId: put_api_v1_moip_system
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+  /api/v1/moip/system/status:
+    get:
+      operationId: get_api_v1_moip_system_status
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+  /api/v1/moip/unit:
+    get:
+      operationId: get_api_v1_moip_unit
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+  /api/v1/moip/unit/{id}:
+    delete:
+      operationId: delete_api_v1_moip_unit_id
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+    get:
+      operationId: get_api_v1_moip_unit_id
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+    post:
+      operationId: post_api_v1_moip_unit_id
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+    put:
+      operationId: put_api_v1_moip_unit_id
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+  /api/v1/moip/unit/{id}/log:
+    delete:
+      operationId: delete_api_v1_moip_unit_id_log
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+    get:
+      operationId: get_api_v1_moip_unit_id_log
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+  /api/v1/moip/unit/{id}/stats:
+    get:
+      operationId: get_api_v1_moip_unit_id_stats
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+  /api/v1/moip/usb_rx/{id}:
+    get:
+      operationId: get_api_v1_moip_usb_rx_id
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+    put:
+      operationId: put_api_v1_moip_usb_rx_id
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+  /api/v1/moip/usb_tx/{id}:
+    get:
+      operationId: get_api_v1_moip_usb_tx_id
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+    put:
+      operationId: put_api_v1_moip_usb_tx_id
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+  /api/v1/moip/video_rx/{id}:
+    get:
+      operationId: get_api_v1_moip_video_rx_id
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+    post:
+      operationId: post_api_v1_moip_video_rx_id
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+    put:
+      operationId: put_api_v1_moip_video_rx_id
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+  /api/v1/moip/video_rx/{id}/edid:
+    get:
+      operationId: get_api_v1_moip_video_rx_id_edid
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+  /api/v1/moip/video_tx/{id}:
+    get:
+      operationId: get_api_v1_moip_video_tx_id
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+    put:
+      operationId: put_api_v1_moip_video_tx_id
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+  /api/v1/moip/video_tx/{id}/edid:
+    get:
+      operationId: get_api_v1_moip_video_tx_id_edid
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+  /api/v1/moip/video_tx/{id}/preview:
+    get:
+      operationId: get_api_v1_moip_video_tx_id_preview
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+  /api/v1/moip/vidwall:
+    get:
+      operationId: get_api_v1_moip_vidwall
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+    post:
+      operationId: post_api_v1_moip_vidwall
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+  /api/v1/moip/vidwall/{id}:
+    delete:
+      operationId: delete_api_v1_moip_vidwall_id
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+    get:
+      operationId: get_api_v1_moip_vidwall_id
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+    put:
+      operationId: put_api_v1_moip_vidwall_id
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericObject'
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found

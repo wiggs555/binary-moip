@@ -1,0 +1,73 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "binary-moip"
+version = "0.1.0"
+description = "Python wrapper for SnapAV Binary MoIP control (TCP) and configuration (REST) APIs"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+authors = [{ name = "Binary MoIP Contributors" }]
+keywords = ["moip", "snapav", "binary", "av", "control"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Home Automation",
+    "Topic :: System :: Networking",
+]
+dependencies = [
+    "httpx>=0.27",
+    "pydantic>=2.0",
+    "websockets>=12.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "mypy>=1.8",
+    "openapi-python-client>=0.21",
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "respx>=0.21",
+    "ruff>=0.4",
+]
+
+[project.urls]
+Homepage = "https://github.com/binary-moip/binary-moip"
+Documentation = "https://github.com/binary-moip/binary-moip#readme"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/binary_moip"]
+
+[tool.hatch.build.targets.sdist]
+only-include = ["src/binary_moip", "openapi", "docs", "README.md", "LICENSE", "examples"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+markers = [
+    "integration: tests requiring a live MoIP controller",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+extend-exclude = ["src/binary_moip/generated"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+check_untyped_defs = true
+ignore_missing_imports = true
