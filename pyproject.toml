@@ -43,6 +43,9 @@ dev = [
 Homepage = "https://github.com/binary-moip/binary-moip"
 Documentation = "https://github.com/binary-moip/binary-moip#readme"
 
+[project.scripts]
+binary-moip = "binary_moip.cli.main:main"
+
 [tool.hatch.build.targets.wheel]
 packages = ["src/binary_moip"]
 
