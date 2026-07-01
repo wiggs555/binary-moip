@@ -30,6 +30,51 @@ source .venv/bin/activate
 pip install -e ".[dev]"
 ```
 
+## Command-line interface
+
+After installation, the `binary-moip` command is available on your PATH (also runnable as `python -m binary_moip.cli`).
+
+### Connection options
+
+Global flags apply to all subcommands:
+
+| Flag | Environment variable | Description |
+|------|---------------------|-------------|
+| `--host` | `MOIP_HOST` | Controller hostname or IP |
+| `--base-url` | `MOIP_BASE_URL` | REST base URL (default: `https://{host}`) |
+| `--user` | `MOIP_USER` | Username |
+| `--password` | `MOIP_PASS` | Password (prompted if unset) |
+| `--port` | — | TCP control port (default: 23) |
+| `--no-verify-ssl` | — | Disable SSL verification for REST |
+| `--pretty` | — | Pretty-print JSON output |
+
+### TCP control examples
+
+```bash
+binary-moip --host 192.168.1.10 --user admin --password secret control devices
+binary-moip --host 192.168.1.10 --user admin --password secret control receivers
+binary-moip --host 192.168.1.10 --user admin --password secret control names --rx
+binary-moip --host 192.168.1.10 --user admin --password secret control switch 1 2
+binary-moip --host 192.168.1.10 --user admin --password secret control scenes
+binary-moip --host 192.168.1.10 --user admin --password secret control activate-scene "Good Night"
+binary-moip --host 192.168.1.10 --user admin --password secret control raw "?Firmware"
+```
+
+### REST configuration examples
+
+```bash
+binary-moip --host 192.168.1.10 --user admin --password secret --no-verify-ssl config units
+binary-moip --host 192.168.1.10 --user admin --password secret --no-verify-ssl config system
+binary-moip --host 192.168.1.10 --user admin --password secret --no-verify-ssl config status
+binary-moip --host 192.168.1.10 --user admin --password secret --no-verify-ssl \
+  config request GET /api/v1/moip/video_rx/1052
+binary-moip --host 192.168.1.10 --user admin --password secret --no-verify-ssl \
+  config request PUT /api/v1/moip/video_rx/1052 --body '{"settings":{"name":"TV"}}'
+binary-moip --host 192.168.1.10 --user admin --password secret --no-verify-ssl config watch
+```
+
+The `config request` subcommand provides access to all REST API endpoints. Use `config watch` to stream change events (Ctrl+C to stop).
+
 ## Quick start — TCP control
 
 Switch receiver 2 to transmitter 1:
@@ -122,11 +167,11 @@ ruff check src tests
 
 ## Examples
 
-See [`examples/`](examples/) for standalone scripts:
+See [`examples/`](examples/) for standalone scripts (or use the CLI equivalents above):
 
-- `switch_source.py` — TCP switching
-- `list_units.py` — REST unit listing
-- `watch_events.py` — async WebSocket listener
+- `switch_source.py` — TCP switching (`binary-moip control switch`)
+- `list_units.py` — REST unit listing (`binary-moip config units`)
+- `watch_events.py` — WebSocket listener (`binary-moip config watch`)
 
 ## License
 
