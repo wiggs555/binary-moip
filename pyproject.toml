@@ -9,7 +9,7 @@ description = "Python wrapper for SnapAV Binary MoIP control (TCP) and configura
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.10"
-authors = [{ name = "Binary MoIP Contributors" }]
+authors = [{ name = "wiggs555" }]
 keywords = ["moip", "snapav", "binary", "av", "control"]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -40,8 +40,8 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/binary-moip/binary-moip"
-Documentation = "https://github.com/binary-moip/binary-moip#readme"
+Homepage = "https://github.com/wiggs555/binary-moip"
+Documentation = "https://github.com/wiggs555/binary-moip/blob/main/README.md"
 
 [project.scripts]
 binary-moip = "binary_moip.cli.main:main"
