@@ -34,11 +34,12 @@ class AsyncControlClient:
     def __init__(
         self,
         host: str,
-        username: str,
-        password: str,
+        username: str = "",
+        password: str = "",
         *,
         port: int = 23,
         timeout: float = 10.0,
+        banner_timeout: float = 2.0,
         login_prompt: str = "login:",
         password_prompt: str = "password:",
     ) -> None:
@@ -47,6 +48,7 @@ class AsyncControlClient:
         self.username = username
         self.password = password
         self.timeout = timeout
+        self.banner_timeout = banner_timeout
         self.login_prompt = login_prompt.lower()
         self.password_prompt = password_prompt.lower()
         self._reader: asyncio.StreamReader | None = None
@@ -56,6 +58,7 @@ class AsyncControlClient:
         self._running = False
         self._pending_event: asyncio.Event | None = None
         self._pending_lines: list[str] = []
+        self._expect_multiline = False
         self._unsolicited_callbacks: list[Callable[[UnsolicitedMessage], None]] = []
 
     async def __aenter__(self) -> AsyncControlClient:
@@ -66,7 +69,7 @@ class AsyncControlClient:
         await self.close()
 
     async def connect(self) -> None:
-        """Open TCP connection and authenticate."""
+        """Open the TCP connection, authenticating only if the controller requires it."""
         if self._writer is not None:
             return
         try:
@@ -76,7 +79,7 @@ class AsyncControlClient:
             )
         except (OSError, TimeoutError) as exc:
             raise ConnectionError(f"Failed to connect to {self.host}:{self.port}") from exc
-        await self._authenticate()
+        await self._handshake()
         self._running = True
         self._reader_task = asyncio.create_task(self._reader_loop())
 
@@ -101,38 +104,92 @@ class AsyncControlClient:
 
     async def send_command(self, command: str) -> str:
         """Send a raw command and return the primary response line."""
+        lines = await self._exchange(command, multiline=False)
+        if not lines:
+            raise CommandError("Empty response from controller")
+        response = lines[-1]
+        if response.strip().startswith("#"):
+            raise CommandError(
+                f"Command failed: {response.strip()}",
+                response=response.strip(),
+            )
+        return response
+
+    async def send_command_lines(self, command: str, *, settle: float = 0.4) -> list[str]:
+        """Send a command and collect all response lines (for multi-line replies).
+
+        Some queries (e.g. ``?Name``) stream several lines without a trailing
+        ``OK`` terminator, so completion is detected by an idle gap.
+        """
+        lines = await self._exchange(command, multiline=True, settle=settle)
+        for line in lines:
+            if line.strip().startswith("#"):
+                raise CommandError(
+                    f"Command failed: {line.strip()}",
+                    response=line.strip(),
+                )
+        return lines
+
+    async def _exchange(
+        self, command: str, *, multiline: bool, settle: float = 0.4
+    ) -> list[str]:
         if self._writer is None or self._reader is None:
             raise ConnectionError("Not connected")
         async with self._lock:
             self._pending_lines = []
+            self._expect_multiline = multiline
             event = asyncio.Event()
             self._pending_event = event
             try:
                 payload = command if command.endswith("\n") else command + "\n"
                 self._writer.write(payload.encode("ascii"))
                 await self._writer.drain()
-                try:
-                    await asyncio.wait_for(event.wait(), timeout=self.timeout)
-                except TimeoutError as exc:
-                    raise ConnectionError("Timed out waiting for command response") from exc
-                if not self._pending_lines:
-                    raise CommandError("Empty response from controller")
-                response = self._pending_lines[-1]
-                if response.strip().startswith("#"):
-                    raise CommandError(
-                        f"Command failed: {response.strip()}",
-                        response=response.strip(),
-                    )
-                return response
+                if multiline:
+                    await self._wait_multiline(event, settle)
+                else:
+                    try:
+                        await asyncio.wait_for(event.wait(), timeout=self.timeout)
+                    except TimeoutError as exc:
+                        raise ConnectionError(
+                            "Timed out waiting for command response"
+                        ) from exc
+                return list(self._pending_lines)
             finally:
                 self._pending_event = None
+                self._expect_multiline = False
 
-    async def _authenticate(self) -> None:
+    async def _wait_multiline(self, event: asyncio.Event, settle: float) -> None:
+        """Wait for a multi-line reply, ending on a terminator or an idle gap."""
+        loop = asyncio.get_running_loop()
+        deadline = loop.time() + self.timeout
+        last_count = -1
+        while loop.time() < deadline:
+            try:
+                await asyncio.wait_for(event.wait(), timeout=settle)
+                return
+            except TimeoutError:
+                count = len(self._pending_lines)
+                if count and count == last_count:
+                    return
+                last_count = count
+
+    async def _handshake(self) -> None:
+        """Detect whether the controller requires authentication and act accordingly.
+
+        The controller may or may not require authentication. We read the initial
+        reply after connecting: if it presents a login prompt we authenticate,
+        otherwise (any other reply, or a successful connection with no prompt) we
+        assume the session is open and ready for commands.
+        """
         if self._reader is None or self._writer is None:
             raise ConnectionError("Not connected")
-        banner = await self._read_until_prompt(self.login_prompt)
-        if banner is None:
-            raise AuthError("Login prompt not received")
+        banner = await self._read_initial_banner()
+        if self.login_prompt in banner.lower():
+            await self._login()
+
+    async def _login(self) -> None:
+        if self._reader is None or self._writer is None:
+            raise ConnectionError("Not connected")
         self._writer.write(f"{self.username}\n".encode("ascii"))
         await self._writer.drain()
         banner = await self._read_until_prompt(self.password_prompt)
@@ -146,6 +203,26 @@ class AsyncControlClient:
             raise AuthError("Authentication failed")
         if self.login_prompt in combined:
             raise AuthError("Authentication failed — login prompt repeated")
+
+    async def _read_initial_banner(self) -> str:
+        """Read the controller's initial reply, stopping early if a login prompt appears."""
+        if self._reader is None:
+            return ""
+        buffer = ""
+        read_timeout = self.banner_timeout
+        while True:
+            try:
+                chunk = await asyncio.wait_for(self._reader.read(4096), timeout=read_timeout)
+            except TimeoutError:
+                break
+            if not chunk:
+                break
+            buffer += chunk.decode("ascii", errors="replace")
+            if self.login_prompt in buffer.lower():
+                break
+            # Received a non-prompt reply; drain any remainder quickly then proceed.
+            read_timeout = 0.3
+        return buffer
 
     async def _read_until_prompt(self, prompt: str) -> str | None:
         if self._reader is None:
@@ -209,7 +286,11 @@ class AsyncControlClient:
             return
         if self._pending_event is not None:
             self._pending_lines.append(line)
-            if proto.is_response_complete(line):
+            if self._expect_multiline:
+                stripped = line.strip()
+                if stripped in ("OK", "Bye") or stripped.startswith("#"):
+                    self._pending_event.set()
+            elif proto.is_response_complete(line):
                 self._pending_event.set()
 
     async def _send_control(self, command: str) -> None:
@@ -230,10 +311,7 @@ class AsyncControlClient:
 
     async def get_names(self, tx: bool) -> list[DeviceName]:
         mode = "1" if tx else "0"
-        first = await self.send_command(build_query(f"Name={mode}"))
-        lines = [first]
-        extra = [ln for ln in self._pending_lines[:-1] if ln.strip().startswith("?Name=")]
-        lines.extend(extra)
+        lines = await self.send_command_lines(build_query(f"Name={mode}"))
         return proto.parse_names(lines)
 
     async def get_scenes(self) -> list[str]:

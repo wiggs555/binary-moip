@@ -5,6 +5,7 @@ from __future__ import annotations
 import contextlib
 import socket
 import threading
+import time
 from collections.abc import Callable
 from typing import Any
 
@@ -36,11 +37,12 @@ class ControlClient:
     def __init__(
         self,
         host: str,
-        username: str,
-        password: str,
+        username: str = "",
+        password: str = "",
         *,
         port: int = 23,
         timeout: float = 10.0,
+        banner_timeout: float = 2.0,
         login_prompt: str = "login:",
         password_prompt: str = "password:",
     ) -> None:
@@ -49,6 +51,7 @@ class ControlClient:
         self.username = username
         self.password = password
         self.timeout = timeout
+        self.banner_timeout = banner_timeout
         self.login_prompt = login_prompt.lower()
         self.password_prompt = password_prompt.lower()
         self._sock: socket.socket | None = None
@@ -57,6 +60,7 @@ class ControlClient:
         self._running = False
         self._pending_response: threading.Event | None = None
         self._pending_lines: list[str] = []
+        self._expect_multiline = False
         self._unsolicited_callbacks: list[Callable[[UnsolicitedMessage], None]] = []
 
     def __enter__(self) -> ControlClient:
@@ -67,7 +71,7 @@ class ControlClient:
         self.close()
 
     def connect(self) -> None:
-        """Open TCP connection and authenticate."""
+        """Open the TCP connection, authenticating only if the controller requires it."""
         if self._sock is not None:
             return
         try:
@@ -76,7 +80,7 @@ class ControlClient:
         except OSError as exc:
             raise ConnectionError(f"Failed to connect to {self.host}:{self.port}") from exc
         self._sock = sock
-        self._authenticate()
+        self._handshake()
         self._running = True
         self._reader_thread = threading.Thread(target=self._reader_loop, daemon=True)
         self._reader_thread.start()
@@ -99,35 +103,81 @@ class ControlClient:
 
     def send_command(self, command: str) -> str:
         """Send a raw command and return the primary response line."""
+        lines = self._exchange(command, multiline=False)
+        if not lines:
+            raise CommandError("Empty response from controller")
+        response = lines[-1]
+        if response.strip().startswith("#"):
+            raise CommandError(
+                f"Command failed: {response.strip()}",
+                response=response.strip(),
+            )
+        return response
+
+    def send_command_lines(self, command: str, *, settle: float = 0.4) -> list[str]:
+        """Send a command and collect all response lines (for multi-line replies).
+
+        Some queries (e.g. ``?Name``) stream several lines without a trailing
+        ``OK`` terminator, so completion is detected by an idle gap.
+        """
+        lines = self._exchange(command, multiline=True, settle=settle)
+        for line in lines:
+            if line.strip().startswith("#"):
+                raise CommandError(
+                    f"Command failed: {line.strip()}",
+                    response=line.strip(),
+                )
+        return lines
+
+    def _exchange(self, command: str, *, multiline: bool, settle: float = 0.4) -> list[str]:
         if self._sock is None:
             raise ConnectionError("Not connected")
         with self._lock:
             self._pending_lines = []
+            self._expect_multiline = multiline
             event = threading.Event()
             self._pending_response = event
             try:
                 payload = command if command.endswith("\n") else command + "\n"
                 self._sock.sendall(payload.encode("ascii"))
-                if not event.wait(timeout=self.timeout):
+                if multiline:
+                    self._wait_multiline(event, settle)
+                elif not event.wait(timeout=self.timeout):
                     raise ConnectionError("Timed out waiting for command response")
-                if not self._pending_lines:
-                    raise CommandError("Empty response from controller")
-                response = self._pending_lines[-1]
-                if response.strip().startswith("#"):
-                    raise CommandError(
-                        f"Command failed: {response.strip()}",
-                        response=response.strip(),
-                    )
-                return response
+                return list(self._pending_lines)
             finally:
                 self._pending_response = None
+                self._expect_multiline = False
 
-    def _authenticate(self) -> None:
+    def _wait_multiline(self, event: threading.Event, settle: float) -> None:
+        """Wait for a multi-line reply, ending on a terminator or an idle gap."""
+        deadline = time.monotonic() + self.timeout
+        last_count = -1
+        while time.monotonic() < deadline:
+            if event.wait(settle):
+                return
+            count = len(self._pending_lines)
+            if count and count == last_count:
+                return
+            last_count = count
+
+    def _handshake(self) -> None:
+        """Detect whether the controller requires authentication and act accordingly.
+
+        The controller may or may not require authentication. We read the initial
+        reply after connecting: if it presents a login prompt we authenticate,
+        otherwise (any other reply, or a successful connection with no prompt) we
+        assume the session is open and ready for commands.
+        """
         if self._sock is None:
             raise ConnectionError("Not connected")
-        banner = self._read_until_prompt(self.login_prompt)
-        if banner is None:
-            raise AuthError("Login prompt not received")
+        banner = self._read_initial_banner()
+        if self.login_prompt in banner.lower():
+            self._login()
+
+    def _login(self) -> None:
+        if self._sock is None:
+            raise ConnectionError("Not connected")
         self._sock.sendall(f"{self.username}\n".encode("ascii"))
         banner = self._read_until_prompt(self.password_prompt)
         if banner is None:
@@ -139,6 +189,29 @@ class ControlClient:
             raise AuthError("Authentication failed")
         if self.login_prompt in combined:
             raise AuthError("Authentication failed — login prompt repeated")
+
+    def _read_initial_banner(self) -> str:
+        """Read the controller's initial reply, stopping early if a login prompt appears."""
+        if self._sock is None:
+            return ""
+        buffer = ""
+        self._sock.settimeout(self.banner_timeout)
+        try:
+            while True:
+                try:
+                    chunk = self._sock.recv(4096).decode("ascii", errors="replace")
+                except (TimeoutError, OSError):
+                    break
+                if not chunk:
+                    break
+                buffer += chunk
+                if self.login_prompt in buffer.lower():
+                    break
+                # Received a non-prompt reply; drain any remainder quickly then proceed.
+                self._sock.settimeout(0.3)
+        finally:
+            self._sock.settimeout(self.timeout)
+        return buffer
 
     def _read_until_prompt(self, prompt: str) -> str | None:
         if self._sock is None:
@@ -201,7 +274,11 @@ class ControlClient:
             return
         if self._pending_response is not None:
             self._pending_lines.append(line)
-            if proto.is_response_complete(line):
+            if self._expect_multiline:
+                stripped = line.strip()
+                if stripped in ("OK", "Bye") or stripped.startswith("#"):
+                    self._pending_response.set()
+            elif proto.is_response_complete(line):
                 self._pending_response.set()
 
     def _send_control(self, command: str) -> None:
@@ -224,12 +301,7 @@ class ControlClient:
 
     def get_names(self, tx: bool) -> list[DeviceName]:
         mode = "1" if tx else "0"
-        first = self.send_command(build_query(f"Name={mode}"))
-        lines = [first]
-        # Additional name lines may arrive as follow-up query lines before OK
-        with self._lock:
-            extra = [ln for ln in self._pending_lines[:-1] if ln.strip().startswith("?Name=")]
-        lines.extend(extra)
+        lines = self.send_command_lines(build_query(f"Name={mode}"))
         return proto.parse_names(lines)
 
     def get_scenes(self) -> list[str]:

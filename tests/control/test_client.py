@@ -95,3 +95,40 @@ def test_control_client_command_error(monkeypatch: pytest.MonkeyPatch) -> None:
     with pytest.raises(CommandError):
         client.send_command("!Switch=99,99")
     client.close()
+
+
+def test_control_client_no_auth_with_banner(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A non-login banner means the session is ready without authenticating."""
+    mock = ScriptSocket([b"Welcome to MoIP\r\n"])
+
+    def fake_connect(address: Any, timeout: float = 10.0) -> ScriptSocket:
+        return mock
+
+    monkeypatch.setattr(socket, "create_connection", fake_connect)
+
+    client = ControlClient("192.168.1.10", "admin", "secret", timeout=2.0)
+    client.connect()
+    time.sleep(0.05)
+    client.switch(1, 2)
+    assert b"!Switch=1,2\n" in mock.sent
+    # Credentials must not be sent when no login prompt is presented.
+    assert b"admin\n" not in mock.sent
+    assert b"secret\n" not in mock.sent
+    client.close()
+
+
+def test_control_client_no_auth_no_banner(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A successful connection with no reply is still treated as ready."""
+    mock = ScriptSocket([])
+
+    def fake_connect(address: Any, timeout: float = 10.0) -> ScriptSocket:
+        return mock
+
+    monkeypatch.setattr(socket, "create_connection", fake_connect)
+
+    client = ControlClient("192.168.1.10", timeout=2.0)
+    client.connect()
+    time.sleep(0.05)
+    client.switch(1, 2)
+    assert b"!Switch=1,2\n" in mock.sent
+    client.close()

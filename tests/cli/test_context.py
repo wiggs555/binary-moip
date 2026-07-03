@@ -78,3 +78,44 @@ def test_resolve_options_missing_user() -> None:
             timeout=10.0,
             pretty=False,
         )
+
+
+def test_resolve_options_optional_credentials() -> None:
+    """Control commands allow missing credentials without prompting."""
+    with patch.dict(os.environ, {}, clear=True):
+        opts = resolve_options(
+            host="192.168.1.10",
+            base_url=None,
+            user=None,
+            password=None,
+            port=23,
+            no_verify_ssl=False,
+            timeout=10.0,
+            pretty=False,
+            require_credentials=False,
+        )
+    assert opts.username == ""
+    assert opts.password == ""
+
+
+def test_resolve_options_optional_credentials_no_prompt(monkeypatch: pytest.MonkeyPatch) -> None:
+    """When credentials are optional, getpass must not be invoked."""
+
+    def _fail_prompt(_prompt: str = "") -> str:
+        raise AssertionError("getpass should not be called for optional credentials")
+
+    monkeypatch.setattr("binary_moip.cli.context.getpass", _fail_prompt)
+    with patch.dict(os.environ, {}, clear=True):
+        opts = resolve_options(
+            host="192.168.1.10",
+            base_url=None,
+            user="admin",
+            password=None,
+            port=23,
+            no_verify_ssl=False,
+            timeout=10.0,
+            pretty=False,
+            require_credentials=False,
+        )
+    assert opts.username == "admin"
+    assert opts.password == ""

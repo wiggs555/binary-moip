@@ -34,8 +34,14 @@ def resolve_options(
     no_verify_ssl: bool,
     timeout: float,
     pretty: bool,
+    require_credentials: bool = True,
 ) -> CliOptions:
-    """Resolve connection options from CLI flags and environment variables."""
+    """Resolve connection options from CLI flags and environment variables.
+
+    When ``require_credentials`` is False (e.g. for the TCP ``control`` commands,
+    where the controller may not require authentication), a missing username is
+    allowed and the password is not prompted for; both default to empty strings.
+    """
     resolved_host = host or os.environ.get("MOIP_HOST")
     if not resolved_host:
         raise SystemExit("Host is required (--host or MOIP_HOST)")
@@ -43,12 +49,16 @@ def resolve_options(
     resolved_base_url = base_url or os.environ.get("MOIP_BASE_URL") or f"https://{resolved_host}"
 
     resolved_user = user or os.environ.get("MOIP_USER")
-    if not resolved_user:
-        raise SystemExit("Username is required (--user or MOIP_USER)")
-
     resolved_password = password or os.environ.get("MOIP_PASS")
-    if not resolved_password:
-        resolved_password = getpass("Password: ")
+
+    if require_credentials:
+        if not resolved_user:
+            raise SystemExit("Username is required (--user or MOIP_USER)")
+        if not resolved_password:
+            resolved_password = getpass("Password: ")
+    else:
+        resolved_user = resolved_user or ""
+        resolved_password = resolved_password or ""
 
     return CliOptions(
         host=resolved_host,

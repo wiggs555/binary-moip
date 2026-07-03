@@ -30,7 +30,7 @@ def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) ->
     activate.add_argument("name", help="Scene name")
 
     raw = control_sub.add_parser("raw", help="Send a raw control/query command")
-    raw.add_argument("command", help="Command string (e.g. ?Firmware or !Switch=1,2)")
+    raw.add_argument("cmd", help="Command string (e.g. ?Firmware or !Switch=1,2)")
 
 
 def run_control(args: argparse.Namespace, options: CliOptions) -> None:
@@ -52,6 +52,6 @@ def run_control(args: argparse.Namespace, options: CliOptions) -> None:
                 client.activate_scene(args.name)
                 emit({"ok": True, "scene": args.name}, pretty=options.pretty)
             elif args.control_command == "raw":
-                emit_raw(client.send_command(args.command))
+                emit_raw(client.send_command(args.cmd))
     except BaseException as exc:
         handle_error(exc)

@@ -21,8 +21,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     parser.add_argument("--host", help="Controller host (env: MOIP_HOST)")
     parser.add_argument("--base-url", help="REST base URL (env: MOIP_BASE_URL, default: https://HOST)")
-    parser.add_argument("--user", help="Username (env: MOIP_USER)")
-    parser.add_argument("--password", help="Password (env: MOIP_PASS; prompts if unset)")
+    parser.add_argument("--user", help="Username (env: MOIP_USER; optional for control commands)")
+    parser.add_argument(
+        "--password",
+        help="Password (env: MOIP_PASS; prompts if unset for config commands)",
+    )
     parser.add_argument("--port", type=int, default=23, help="TCP control port (default: 23)")
     parser.add_argument(
         "--no-verify-ssl",
@@ -44,6 +47,10 @@ def main(argv: list[str] | None = None) -> None:
     parser = build_parser()
     args = parser.parse_args(argv)
 
+    # The TCP control API may not require authentication, so credentials are only
+    # mandatory for the REST-based config commands.
+    require_credentials = args.command == "config"
+
     try:
         options = resolve_options(
             host=args.host,
@@ -54,6 +61,7 @@ def main(argv: list[str] | None = None) -> None:
             no_verify_ssl=args.no_verify_ssl,
             timeout=args.timeout,
             pretty=args.pretty,
+            require_credentials=require_credentials,
         )
     except SystemExit:
         raise
