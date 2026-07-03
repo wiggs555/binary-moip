@@ -47,6 +47,14 @@ def main(argv: list[str] | None = None) -> None:
     parser = build_parser()
     args = parser.parse_args(argv)
 
+    if args.password is not None:
+        print(
+            "Warning: passing --password on the command line exposes it to other "
+            "users via the process list; prefer the MOIP_PASS environment variable "
+            "or the interactive prompt.",
+            file=sys.stderr,
+        )
+
     # The TCP control API may not require authentication, so credentials are only
     # mandatory for the REST-based config commands.
     require_credentials = args.command == "config"
