@@ -78,6 +78,26 @@ def test_control_without_credentials(mock_control_client: MagicMock, capsys) -> 
     assert out == {"tx": 1, "rx": 4}
 
 
+def test_password_flag_warns(mock_control_client: MagicMock, capsys) -> None:
+    """Passing --password prints a process-list exposure warning to stderr."""
+    with patch("binary_moip.cli.control.control_client", return_value=mock_control_client):
+        main(
+            [
+                "--host",
+                "192.168.1.10",
+                "--user",
+                "admin",
+                "--password",
+                "secret",
+                "control",
+                "devices",
+            ]
+        )
+    captured = capsys.readouterr()
+    assert "process list" in captured.err
+    assert json.loads(captured.out.strip()) == {"tx": 1, "rx": 4}
+
+
 def test_control_switch(mock_control_client: MagicMock, capsys) -> None:
     with patch("binary_moip.cli.control.control_client", return_value=mock_control_client):
         main(

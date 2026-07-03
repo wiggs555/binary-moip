@@ -39,6 +39,38 @@ def _http_to_ws(base_url: str, path: str) -> str:
     return f"{scheme}://{host}{path}"
 
 
+def _resolve_raw_socket_target(
+    info: Any,
+    base_url: str,
+    *,
+    allow_alternate_host: bool,
+) -> tuple[str, int]:
+    """Resolve the raw-change socket target, constrained to the controller host.
+
+    The ``host`` returned by ``/api/v1/moip/raw_change`` is attacker-influenceable
+    if the API response is tampered with (e.g. MITM when TLS verification is
+    disabled), which would let the client be pointed at arbitrary internal hosts.
+    We therefore connect to the configured controller host by default and only
+    honor a different host when ``allow_alternate_host`` is explicitly set.
+    """
+    controller_host = urlparse(base_url).hostname or "localhost"
+    api_host = info.get("host") if isinstance(info, dict) else None
+    api_port = info.get("port") if isinstance(info, dict) else None
+    if not api_port:
+        raise ConnectionError("Could not determine raw change socket port")
+
+    host = controller_host
+    if api_host and str(api_host) != controller_host:
+        if not allow_alternate_host:
+            raise ConnectionError(
+                f"raw_change returned host {api_host!r} that differs from the "
+                f"controller host {controller_host!r}; refusing to connect. "
+                "Pass allow_alternate_host=True to override."
+            )
+        host = str(api_host)
+    return host, int(api_port)
+
+
 def _parse_raw_event(line: str) -> ChangeEvent | None:
     stripped = line.strip()
     if not stripped:
@@ -93,9 +125,15 @@ class AsyncEventClient:
                     message = message.decode("utf-8", errors="replace")
                 yield _parse_ws_payload(message)
 
-    async def subscribe_raw(self) -> AsyncIterator[ChangeEvent]:
-        """Subscribe to change events via raw TCP socket (fallback)."""
-        host, port = await self._raw_socket_address()
+    async def subscribe_raw(
+        self, *, allow_alternate_host: bool = False
+    ) -> AsyncIterator[ChangeEvent]:
+        """Subscribe to change events via raw TCP socket (fallback).
+
+        By default the socket target is constrained to the controller host; set
+        ``allow_alternate_host`` to trust a different host from the API response.
+        """
+        host, port = await self._raw_socket_address(allow_alternate_host=allow_alternate_host)
         reader, writer = await asyncio.open_connection(host, port)
         try:
             buffer = ""
@@ -114,7 +152,9 @@ class AsyncEventClient:
             with contextlib.suppress(OSError):
                 await writer.wait_closed()
 
-    async def _raw_socket_address(self) -> tuple[str, int]:
+    async def _raw_socket_address(
+        self, *, allow_alternate_host: bool = False
+    ) -> tuple[str, int]:
         async with httpx.AsyncClient(base_url=self.base_url, verify=self.verify_ssl) as client:
             token = await self.token_manager.aget_token(client)
             response = await client.get(
@@ -123,14 +163,9 @@ class AsyncEventClient:
             )
             response.raise_for_status()
             info = response.json()
-        parsed = urlparse(self.base_url)
-        host = info.get("host") if isinstance(info, dict) else None
-        port = info.get("port") if isinstance(info, dict) else None
-        if not host:
-            host = parsed.hostname or "localhost"
-        if not port:
-            raise ConnectionError("Could not determine raw change socket port")
-        return str(host), int(port)
+        return _resolve_raw_socket_target(
+            info, self.base_url, allow_alternate_host=allow_alternate_host
+        )
 
 
 class SyncEventClient:
@@ -167,9 +202,13 @@ class SyncEventClient:
                     message = message.decode("utf-8", errors="replace")
                 yield _parse_ws_payload(message)
 
-    def subscribe_raw(self) -> Iterator[ChangeEvent]:
-        """Subscribe to change events via raw TCP socket (fallback)."""
-        host, port = self._raw_socket_address()
+    def subscribe_raw(self, *, allow_alternate_host: bool = False) -> Iterator[ChangeEvent]:
+        """Subscribe to change events via raw TCP socket (fallback).
+
+        By default the socket target is constrained to the controller host; set
+        ``allow_alternate_host`` to trust a different host from the API response.
+        """
+        host, port = self._raw_socket_address(allow_alternate_host=allow_alternate_host)
         sock = socket.create_connection((host, port))
         try:
             buffer = ""
@@ -186,7 +225,7 @@ class SyncEventClient:
         finally:
             sock.close()
 
-    def _raw_socket_address(self) -> tuple[str, int]:
+    def _raw_socket_address(self, *, allow_alternate_host: bool = False) -> tuple[str, int]:
         with httpx.Client(base_url=self.base_url, verify=self.verify_ssl) as client:
             token = self.token_manager.get_token(client)
             response = client.get(
@@ -195,11 +234,6 @@ class SyncEventClient:
             )
             response.raise_for_status()
             info = response.json()
-        parsed = urlparse(self.base_url)
-        host = info.get("host") if isinstance(info, dict) else None
-        port = info.get("port") if isinstance(info, dict) else None
-        if not host:
-            host = parsed.hostname or "localhost"
-        if not port:
-            raise ConnectionError("Could not determine raw change socket port")
-        return str(host), int(port)
+        return _resolve_raw_socket_target(
+            info, self.base_url, allow_alternate_host=allow_alternate_host
+        )

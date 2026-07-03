@@ -48,6 +48,19 @@ Global flags apply to all subcommands:
 | `--no-verify-ssl` | — | Disable SSL verification for REST |
 | `--pretty` | — | Pretty-print JSON output |
 
+> **Security notes**
+> - Prefer the `MOIP_PASS` environment variable or the interactive prompt over
+>   `--password`. Passing a password as a flag exposes it to other users via the
+>   process list; the CLI prints a warning when you do.
+> - `--no-verify-ssl` disables TLS verification and should only be used on a
+>   trusted LAN with self-signed appliance certificates. Combined with untrusted
+>   networks it enables MITM attacks.
+> - `config request` is authenticated admin access to the controller. Paths must
+>   be relative (e.g. `/api/v1/moip/unit`); absolute URLs are rejected so the
+>   bearer token cannot be sent to another host.
+> - `config watch --raw` connects only to the controller host by default. Pass
+>   `--allow-alternate-host` to trust a different host reported by the API.
+
 ### TCP control examples
 
 The `control` commands use the TCP control connection (port 23). Authentication is
@@ -70,14 +83,17 @@ binary-moip --host 192.168.1.10 --user admin --password secret control raw "?Fir
 ### REST configuration examples
 
 ```bash
-binary-moip --host 192.168.1.10 --user admin --password secret --no-verify-ssl config units
-binary-moip --host 192.168.1.10 --user admin --password secret --no-verify-ssl config system
-binary-moip --host 192.168.1.10 --user admin --password secret --no-verify-ssl config status
-binary-moip --host 192.168.1.10 --user admin --password secret --no-verify-ssl \
+# Provide the password via the environment to keep it out of the process list
+export MOIP_USER=admin MOIP_PASS=secret
+
+binary-moip --host 192.168.1.10 --no-verify-ssl config units
+binary-moip --host 192.168.1.10 --no-verify-ssl config system
+binary-moip --host 192.168.1.10 --no-verify-ssl config status
+binary-moip --host 192.168.1.10 --no-verify-ssl \
   config request GET /api/v1/moip/video_rx/1052
-binary-moip --host 192.168.1.10 --user admin --password secret --no-verify-ssl \
+binary-moip --host 192.168.1.10 --no-verify-ssl \
   config request PUT /api/v1/moip/video_rx/1052 --body '{"settings":{"name":"TV"}}'
-binary-moip --host 192.168.1.10 --user admin --password secret --no-verify-ssl config watch
+binary-moip --host 192.168.1.10 --no-verify-ssl config watch
 ```
 
 The `config request` subcommand provides access to all REST API endpoints. Use `config watch` to stream change events (Ctrl+C to stop).

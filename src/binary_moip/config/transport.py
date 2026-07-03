@@ -13,7 +13,21 @@ from binary_moip.exceptions import ApiError
 _PATH_PARAM_RE = re.compile(r"\{(\w+)\}")
 
 
+def _ensure_relative_path(path: str) -> None:
+    """Reject absolute or protocol-relative paths.
+
+    ``httpx`` treats a fully-qualified or protocol-relative URL as absolute and
+    ignores ``base_url``, which would send the bearer token to an arbitrary host.
+    Only same-origin paths beginning with a single ``/`` are permitted.
+    """
+    if "://" in path or path.startswith("//"):
+        raise ApiError(f"Refusing request to non-relative path: {path!r}")
+    if not path.startswith("/"):
+        raise ApiError(f"Request path must be relative and start with '/': {path!r}")
+
+
 def render_path(path: str, path_params: dict[str, Any] | None) -> str:
+    _ensure_relative_path(path)
     if not path_params:
         if "{" in path:
             raise ApiError(f"Missing path parameters for {path}")

@@ -35,6 +35,12 @@ def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) ->
 
     watch = config_sub.add_parser("watch", help="Watch change events (Ctrl+C to stop)")
     watch.add_argument("--raw", action="store_true", help="Use raw TCP socket instead of WebSocket")
+    watch.add_argument(
+        "--allow-alternate-host",
+        action="store_true",
+        help="Allow the raw-change socket to connect to a host other than the "
+        "controller (as reported by the API); off by default to prevent SSRF",
+    )
 
 
 def _parse_body(args: argparse.Namespace) -> dict | None:
@@ -84,12 +90,13 @@ def run_config(args: argparse.Namespace, options: CliOptions) -> None:
                 )
                 emit(result, pretty=options.pretty)
             elif args.config_command == "watch":
-                subscribe = (
-                    client.events.subscribe_raw
-                    if args.raw
-                    else client.events.subscribe_websocket
-                )
-                for event in subscribe():
+                if args.raw:
+                    events = client.events.subscribe_raw(
+                        allow_alternate_host=args.allow_alternate_host
+                    )
+                else:
+                    events = client.events.subscribe_websocket()
+                for event in events:
                     emit(_event_to_dict(event), pretty=options.pretty)
     except KeyboardInterrupt:
         pass
