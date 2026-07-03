@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -54,6 +55,29 @@ def test_control_devices(mock_control_client: MagicMock, capsys) -> None:
     assert out == {"tx": 1, "rx": 4}
 
 
+def test_control_without_credentials(mock_control_client: MagicMock, capsys) -> None:
+    """Control commands run without --user/--password and never prompt."""
+
+    def _fail_prompt(_prompt: str = "") -> str:
+        raise AssertionError("getpass should not be called for control commands")
+
+    with (
+        patch.dict(os.environ, {}, clear=True),
+        patch("binary_moip.cli.context.getpass", _fail_prompt),
+        patch(
+            "binary_moip.cli.control.control_client",
+            return_value=mock_control_client,
+        ) as factory,
+    ):
+        main(["--host", "192.168.1.10", "control", "devices"])
+    options = factory.call_args.args[0]
+    assert options.username == ""
+    assert options.password == ""
+    mock_control_client.get_devices.assert_called_once()
+    out = json.loads(capsys.readouterr().out.strip())
+    assert out == {"tx": 1, "rx": 4}
+
+
 def test_control_switch(mock_control_client: MagicMock, capsys) -> None:
     with patch("binary_moip.cli.control.control_client", return_value=mock_control_client):
         main(
@@ -73,6 +97,22 @@ def test_control_switch(mock_control_client: MagicMock, capsys) -> None:
     mock_control_client.switch.assert_called_once_with(1, 2)
     out = json.loads(capsys.readouterr().out.strip())
     assert out["ok"] is True
+
+
+def test_control_raw(mock_control_client: MagicMock, capsys) -> None:
+    """The raw positional must not clobber the top-level subcommand dispatch."""
+    with patch("binary_moip.cli.control.control_client", return_value=mock_control_client):
+        main(
+            [
+                "--host",
+                "192.168.1.10",
+                "control",
+                "raw",
+                "?Firmware",
+            ]
+        )
+    mock_control_client.send_command.assert_called_once_with("?Firmware")
+    assert capsys.readouterr().out.strip() == "?Firmware=1.0.0.0"
 
 
 def test_config_units(mock_config_client: MagicMock, capsys) -> None:

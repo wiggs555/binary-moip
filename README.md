@@ -42,15 +42,22 @@ Global flags apply to all subcommands:
 |------|---------------------|-------------|
 | `--host` | `MOIP_HOST` | Controller hostname or IP |
 | `--base-url` | `MOIP_BASE_URL` | REST base URL (default: `https://{host}`) |
-| `--user` | `MOIP_USER` | Username |
-| `--password` | `MOIP_PASS` | Password (prompted if unset) |
+| `--user` | `MOIP_USER` | Username (optional for `control` commands) |
+| `--password` | `MOIP_PASS` | Password (prompted if unset for `config` commands) |
 | `--port` | — | TCP control port (default: 23) |
 | `--no-verify-ssl` | — | Disable SSL verification for REST |
 | `--pretty` | — | Pretty-print JSON output |
 
 ### TCP control examples
 
+The `control` commands use the TCP control connection (port 23). Authentication is
+optional and auto-detected: if the controller presents a login prompt the supplied
+`--user`/`--password` are used, otherwise you can omit them entirely.
+
 ```bash
+# No credentials needed when the controller does not require authentication
+binary-moip --host 192.168.1.10 control devices
+
 binary-moip --host 192.168.1.10 --user admin --password secret control devices
 binary-moip --host 192.168.1.10 --user admin --password secret control receivers
 binary-moip --host 192.168.1.10 --user admin --password secret control names --rx
@@ -95,6 +102,16 @@ from binary_moip import AsyncControlClient
 
 async with AsyncControlClient("192.168.1.10", "admin", "secret") as client:
     await client.switch(1, 2)
+```
+
+Authentication is optional and auto-detected. On connect, if the controller
+presents a login prompt the supplied credentials are used; otherwise the session
+is treated as ready and commands are sent immediately. Controllers that do not
+require authentication can be used without credentials:
+
+```python
+with ControlClient("192.168.1.10") as client:
+    client.switch(tx=1, rx=2)
 ```
 
 ## Quick start — REST configuration
